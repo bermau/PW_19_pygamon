@@ -15,7 +15,7 @@ class Game:
         pygame.display.set_caption("Dinosaure aventure")
         # Charger les cartes
         self.map = 'world'
-        tmx_data = pytmx.util_pygame.load_pygame('carte.tmx')
+        tmx_data = pytmx.util_pygame.load_pygame('map/world.tmx')
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
@@ -57,7 +57,7 @@ class Game:
     def switch_house(self):
         print("Switch to house")
         # Charger les cartes
-        tmx_data = pytmx.util_pygame.load_pygame('house.tmx')
+        tmx_data = pytmx.util_pygame.load_pygame('map/house.tmx')
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 2
@@ -86,7 +86,7 @@ class Game:
         self.map = 'world'
         print("Switch to world")
         # Charger les cartes
-        tmx_data = pytmx.util_pygame.load_pygame('carte.tmx')
+        tmx_data = pytmx.util_pygame.load_pygame('map/world.tmx')
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
