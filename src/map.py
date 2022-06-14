@@ -21,7 +21,7 @@ class MapManager:
         # self.map = 'world'
         print("Switch to world")
         # Charger les cartes
-        tmx_data = pytmx.util_pygame.load_pygame(f"../map/{name}.tmx")
+        tmx_data = pytmx.util_pygame.load_pygame(f"map/{name}.tmx")
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
@@ -48,4 +48,13 @@ class MapManager:
 
     def get_walls(self):
         return self.get_map().walls
+
+    def draw(self):
+        self.get_group().draw(self.screen)
+        self.get_group().center(self.player.rect.center)
+
+    def update(self):
+        self.get_group().update()
+        # self.group.update()
+
 
