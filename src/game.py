@@ -17,12 +17,11 @@ class Game:
 
        # generer un joueur
        #  player_position = tmx_data.get_object_by_name('player')
-        self.player = Player(50,50)
-
+        self.player = Player(0, 0)
         self.map_manager = MapManager(self.screen, self.player)
 
         # # rect de collision pour entrer dans la maison
-        # enter_house = tmx_data.get_object_by_name('enter_house')
+        # enter_house = self.map_manager.  tmx_data.get_object_by_name('enter_house')
         # self.enter_house_rect = pygame.Rect(enter_house.x, enter_house.y, enter_house.width, enter_house.height)
 
 
@@ -46,18 +45,16 @@ class Game:
     def update(self):
         # self.group.update()
         self.map_manager.update()
-        groups = self.map_manager.get_group()
+
+        # verif collision : dans map
 
 
-        # verif collision
-        for sprite in groups.sprites():
-            if sprite.feet.collidelist(self.map_manager.get_walls()) > -1:
-                sprite.move_back()
-        #
         # # Entrée sortie de la maison
+
         # if self.map == 'world' and self.player.feet.colliderect(self.enter_house_rect):
-        #     self.switch_house()
-        #     self.map = 'house'
+        if self.map_manager.get_map() == 'world' and self.player.feet.colliderect(self.enter_house_rect):
+            self.switch_house()
+            self.map = 'house'
         #
         # # Entrée dans le jardin
         # if self.map == 'house' and self.player.feet.colliderect(self.enter_world_rect):
