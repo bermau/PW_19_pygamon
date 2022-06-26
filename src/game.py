@@ -46,10 +46,13 @@ class Game:
     def update(self):
         # self.group.update()
         self.map_manager.update()
+        groups = self.map_manager.get_group()
+
+
         # verif collision
-        # for sprite in self.group.sprites():
-        #     if sprite.feet.collidelist(self.walls) > -1:
-        #         sprite.move_back()
+        for sprite in groups.sprites():
+            if sprite.feet.collidelist(self.map_manager.get_walls()) > -1:
+                sprite.move_back()
         #
         # # Entrée sortie de la maison
         # if self.map == 'world' and self.player.feet.colliderect(self.enter_house_rect):
