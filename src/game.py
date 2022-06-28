@@ -46,9 +46,6 @@ class Game:
         # self.group.update()
         self.map_manager.update()
 
-        # verif collision : dans map
-
-
         # # Entrée sortie de la maison
 
         # if self.map == 'world' and self.player.feet.colliderect(self.enter_house_rect):

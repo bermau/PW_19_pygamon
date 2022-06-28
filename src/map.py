@@ -34,10 +34,10 @@ class MapManager:
         ])
         self.teleport_player('player')
 
-    def teleport_player(self,pos_name):
+    def teleport_player(self, pos_name):
         point = self.get_object(pos_name)
-        self.player.position[0] = point.x
-        self.player.position[1] = point.y
+        self.player.position[0] = point.x - 16
+        self.player.position[1] = point.y - 32     # pour régler le niveau des pieds.
         self.player.save_location()
 
     def register_map(self, name, portals=[]):
@@ -102,5 +102,3 @@ class MapManager:
         self.get_group().update()
         # self.group.update()
         self.check_collision()
-
-
