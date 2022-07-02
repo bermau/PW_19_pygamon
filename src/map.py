@@ -5,6 +5,36 @@ import pyscroll
 import pytmx
 
 
+def groups_in_list(lst, code='X', blank=' '):
+    """Find a list of continuous signs
+
+    >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X', ' '))
+    [(2, 6), (8, 9)]
+    >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X'))
+    [(2, 6), (8, 9)]
+    """
+    walls = []
+    again = True
+    current = 0
+    while again:
+        try:
+            first = lst.index(code, current)
+        except ValueError:
+            again = False
+            break
+        try:
+            last = lst.index(blank, first + 1)
+        except ValueError:
+            last = len(lst)
+
+        if last:
+            walls.append((first, last - 1))
+            current = last
+        else:
+            again = False
+    return walls
+
+
 @dataclass
 class Portal:
     from_world: str
@@ -63,11 +93,20 @@ class MapManager:
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
 
         # # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
+        water_blocks = []
         if 'water' in tmx_data.layernames:
             for y, line in enumerate(tmx_data.layernames['water'].data):
+                line_wall = []
                 for x, cell in enumerate(line):
                     if cell != 0 and tmx_data.layernames['path'].data[y][x] == 0:
-                        walls.append(pygame.Rect(x * 16, y * 16, 16, 16))
+                        line_wall.append('X')
+                    else:
+                        line_wall.append(' ')
+                water_blocks.append(line_wall)
+
+            for y, line in enumerate(water_blocks):
+                for group in groups_in_list(line, code='X', blank=' '):
+                    walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
 
         # Dessiner le groupe de calques
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=8)
