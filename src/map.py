@@ -1,8 +1,5 @@
 from dataclasses import dataclass
-
-import pygame
-import pyscroll
-import pytmx
+import pygame, pytmx, pyscroll
 
 
 @dataclass
@@ -12,28 +9,26 @@ class Portal:
     target_world: str
     teleport_point: str
 
-
 @dataclass
 class Map:
     name: str
     walls: list[pygame.Rect]
-    group: pyscroll.PyscrollGroup
+    group:pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
 
-
 class MapManager:
     def __init__(self, screen, player):
-        self.maps = dict()  # "house" -> Map ("house", walls, group)
+        self.maps = dict()   # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
         self.current_map = 'world'
 
         self.register_map('world', portals=[
             Portal(from_world="world", origin_point='enter_house', target_world="house",
-                   teleport_point="spawn_house")
+                    teleport_point="spawn_house")
         ])
-        self.register_map('house', portals=[
+        self.register_map('house', portals= [
             Portal(from_world='house', origin_point='enter_world', target_world='world',
                    teleport_point="spawn_world")
         ])
@@ -42,12 +37,11 @@ class MapManager:
     def teleport_player(self, pos_name):
         point = self.get_object(pos_name)
         self.player.position[0] = point.x - 16
-        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
+        self.player.position[1] = point.y - 32     # pour régler le niveau des pieds.
         self.player.save_location()
 
-    def register_map(self, name, portals=None):
-        if portals is None:
-            portals = []
+    def register_map(self, name, portals=[]):
+        # self.map = 'world'
         print("Switch to world")
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"map/{name}.tmx")
@@ -61,13 +55,6 @@ class MapManager:
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-
-        # # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
-        if 'water' in tmx_data.layernames:
-            for y, line in enumerate(tmx_data.layernames['water'].data):
-                for x, cell in enumerate(line):
-                    if cell != 0 and tmx_data.layernames['path'].data[y][x] == 0:
-                        walls.append(pygame.Rect(x * 16, y * 16, 16, 16))
 
         # Dessiner le groupe de calques
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=8)
@@ -83,7 +70,7 @@ class MapManager:
         for portal in self.get_map().portals:
             if portal.from_world == self.current_map:
                 point = self.get_object(portal.origin_point)
-                rect = pygame.Rect(point.x, point.y, point.width, point.height)
+                rect = pygame.Rect(point.x, point.y, point.width, point.height )
 
                 if self.player.feet.colliderect(rect):
                     copy_portal = portal
