@@ -1,5 +1,5 @@
 import pygame
-from player import Player
+from player import PlayerEntity
 from src.map import MapManager
 from counter import Counter
 
@@ -14,7 +14,7 @@ class Game:
 
         # générer un joueur
         #  player_position = tmx_data.get_object_by_name('player')
-        self.player = Player(0, 0)
+        self.player = PlayerEntity('player', 0, 0)
         self.map_manager = MapManager(self.screen, self.player)
 
         # Un compteur

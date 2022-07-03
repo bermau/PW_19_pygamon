@@ -1,7 +1,7 @@
 import pygame
 
 
-class Player(pygame.sprite.Sprite):
+class PlayerEntity(pygame.sprite.Sprite):
 
     def __init__(self, name,  x, y):
         super().__init__()
