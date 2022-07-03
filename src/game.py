@@ -1,7 +1,7 @@
 import pygame
 from player import Player
 from src.map import MapManager
-
+from counter import Counter
 
 class Game:
 
@@ -16,6 +16,9 @@ class Game:
         #  player_position = tmx_data.get_object_by_name('player')
         self.player = Player(0, 0)
         self.map_manager = MapManager(self.screen, self.player)
+
+        # Un compteur
+        self.point_counter = Counter()
 
     def handle_input(self):
         pressed = pygame.key.get_pressed()
@@ -46,6 +49,8 @@ class Game:
             self.update()
 
             self.map_manager.draw()
+            self.point_counter.render(self.screen)
+
             pygame.display.flip()
             for even in pygame.event.get():
                 if even.type == pygame.QUIT:
