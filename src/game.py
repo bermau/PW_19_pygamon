@@ -46,18 +46,6 @@ class Game:
         # self.group.update()
         self.map_manager.update()
 
-        # # Entrée sortie de la maison
-
-        # if self.map == 'world' and self.player.feet.colliderect(self.enter_house_rect):
-        if self.map_manager.get_map() == 'world' and self.player.feet.colliderect(self.enter_house_rect):
-            self.switch_house()
-            self.map = 'house'
-        #
-        # # Entrée dans le jardin
-        # if self.map == 'house' and self.player.feet.colliderect(self.enter_world_rect):
-        #     self.switch_world()
-        #     self.map = 'world'
-
 
     def run(self):
         clock = pygame.time.Clock()

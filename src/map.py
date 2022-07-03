@@ -4,7 +4,6 @@ import pygame
 import pyscroll
 import pytmx
 
-
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs
 
@@ -61,12 +60,24 @@ class MapManager:
 
         self.register_map('world', portals=[
             Portal(from_world="world", origin_point='enter_house', target_world="house",
-                   teleport_point="spawn_house")
+                   teleport_point="spawn_from_world")
         ])
+        # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
+        # Attention le from_world doit absolument avoir tous les origine_points.
         self.register_map('house', portals=[
             Portal(from_world='house', origin_point='enter_world', target_world='world',
-                   teleport_point="spawn_world")
+                   teleport_point="spawn_from_house"),
+            Portal(from_world='house', origin_point='enter_dungeon', target_world='dungeon',
+                   teleport_point="spawn_from_house")
         ])
+
+        self.register_map('dungeon', portals=[
+            Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
+                   teleport_point="spawn_from_dungeon"),
+            Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
+                   teleport_point="spawn_from_dungeon")
+        ])
+
         self.teleport_player('player')
 
     def teleport_player(self, pos_name):
@@ -110,14 +121,13 @@ class MapManager:
 
         # Dessiner le groupe de calques
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=8)
-        print("Groupe de calques")
-        print(group)
         group.add(self.player)
 
         # Créer un objet Map
         self.maps[name] = Map(name, walls, group, tmx_data, portals)
 
     def check_collision(self):
+
         # portals
         for portal in self.get_map().portals:
             if portal.from_world == self.current_map:
