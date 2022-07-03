@@ -1,7 +1,4 @@
 import pygame
-import pyscroll
-import pytmx
-
 from player import Player
 from src.map import MapManager
 
@@ -12,18 +9,17 @@ class Game:
         pygame.init()
         # créer la fenêtre du jeu
 
-        self.screen = pygame.display.set_mode((800,600))
+        self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Dinosaure aventure")
 
-       # generer un joueur
-       #  player_position = tmx_data.get_object_by_name('player')
+        # generer un joueur
+        #  player_position = tmx_data.get_object_by_name('player')
         self.player = Player(0, 0)
         self.map_manager = MapManager(self.screen, self.player)
 
         # # rect de collision pour entrer dans la maison
         # enter_house = self.map_manager.  tmx_data.get_object_by_name('enter_house')
         # self.enter_house_rect = pygame.Rect(enter_house.x, enter_house.y, enter_house.width, enter_house.height)
-
 
     def handle_input(self):
         pressed = pygame.key.get_pressed()
@@ -41,11 +37,9 @@ class Game:
             self.player.move_right()
             self.player.change_animation('right')
 
-
     def update(self):
         # self.group.update()
         self.map_manager.update()
-
 
     def run(self):
         clock = pygame.time.Clock()
@@ -61,5 +55,5 @@ class Game:
             for even in pygame.event.get():
                 if even.type == pygame.QUIT:
                     running = False
-            clock.tick(60) # nb images /sec
+            clock.tick(60)  # nb images /sec
         pygame.quit()

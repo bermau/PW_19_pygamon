@@ -4,6 +4,7 @@ import pygame
 import pyscroll
 import pytmx
 
+
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs
 
