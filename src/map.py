@@ -53,7 +53,8 @@ class Map:
 
 
 class MapManager:
-    def __init__(self, screen, player):
+    def __init__(self, master_game, screen, player):
+        self.master_game = master_game
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
@@ -86,11 +87,14 @@ class MapManager:
         self.player.position[0] = point.x - 16
         self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
         self.player.save_location()
+        #
+
+
 
     def register_map(self, name, portals=None):
         if portals is None:
             portals = []
-        print("Switch to world")
+        print("Registering map", name)
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{name}.tmx")
         map_data = pyscroll.data.TiledMapData(tmx_data)
@@ -139,6 +143,8 @@ class MapManager:
                     copy_portal = portal
                     self.current_map = portal.target_world
                     self.teleport_player(copy_portal.teleport_point)
+                    # self.master_game.point_counter
+                    self.master_game.point_counter.points += 100
 
         # collisions
         for sprite in self.get_group().sprites():

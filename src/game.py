@@ -13,9 +13,8 @@ class Game:
         pygame.display.set_caption("Dinosaure aventure")
 
         # générer un joueur
-        #  player_position = tmx_data.get_object_by_name('player')
         self.player = PlayerEntity('player', 0, 0)
-        self.map_manager = MapManager(self.screen, self.player)
+        self.map_manager = MapManager(self, self.screen, self.player)
 
         # Un compteur
         self.point_counter = Counter()
