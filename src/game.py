@@ -57,3 +57,4 @@ class Game:
                     running = False
             clock.tick(60)  # nb images /sec
         pygame.quit()
+
