@@ -50,6 +50,7 @@ class Map:
     group: pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
+    mushrooms: list[pygame.Rect]
 
 
 class MapManager:
@@ -87,8 +88,6 @@ class MapManager:
         self.player.position[0] = point.x - 16
         self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
         self.player.save_location()
-        #
-
 
 
     def register_map(self, name, portals=None):
@@ -123,13 +122,19 @@ class MapManager:
             for y, line in enumerate(water_blocks):
                 for group in groups_in_list(line, code='X', blank=' '):
                     walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
+        # Définir une liste de champignons
+
+        mushrooms = []
+        for obj in tmx_data.objects:
+            if obj.type == "mushroom":
+                mushrooms.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
 
         # Dessiner le groupe de calques
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=8)
         group.add(self.player)
 
         # Créer un objet Map
-        self.maps[name] = Map(name, walls, group, tmx_data, portals)
+        self.maps[name] = Map(name, walls, group, tmx_data, portals, mushrooms)
 
     def check_collision(self):
 
@@ -148,8 +153,17 @@ class MapManager:
 
         # collisions
         for sprite in self.get_group().sprites():
+            if sprite.feet.collidelist(self.get_mushrooms()) > -1:
+                print("Mushroom")
+                self.master_game.point_counter.points += 20
+                # Il faut désactiver le champignon ramassé.
+
             if sprite.feet.collidelist(self.get_walls()) > -1:
+                print("Wall")
                 sprite.move_back()
+
+
+
 
     def get_map(self):
         return self.maps[self.current_map]
@@ -159,6 +173,9 @@ class MapManager:
 
     def get_walls(self):
         return self.get_map().walls
+
+    def get_mushrooms(self):
+        return self.get_map().mushrooms
 
     def get_object(self, name):
         return self.get_map().tmx_data.get_object_by_name(name)
