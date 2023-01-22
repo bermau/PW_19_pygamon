@@ -14,3 +14,7 @@ Artist : [DoubleLeggy](https://www.deviantart.com/doubleleggy/)
 # Dialogs assets
 [/assets/dialogs](/assets/dialogs)
 
+# Starting the game
+1) Download this files.
+2) You need Python 3 and some librairies: pygame, pyscroll, pytmx.
+3) start `/src/main.py`.
