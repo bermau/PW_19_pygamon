@@ -6,8 +6,7 @@ import pytmx
 
 
 def groups_in_list(lst, code='X', blank=' '):
-    """Find a list of continuous signs
-
+    """Find a list of continuous signs.
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X', ' '))
     [(2, 6), (8, 9)]
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X'))
@@ -44,13 +43,21 @@ class Portal:
 
 
 @dataclass
+class Mushroom:
+    """A champignon est un rect avec un certain nombre de points et un indicateur pour l'afficher ou non."""
+    rect : pygame.Rect
+    points: int  # nombre de points
+    display: bool
+
+
+@dataclass
 class Map:
     name: str
     walls: list[pygame.Rect]
     group: pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
-    mushrooms: list[pygame.Rect]
+    mushrooms: list[Mushroom]
 
 
 class MapManager:
@@ -89,7 +96,6 @@ class MapManager:
         self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
         self.player.save_location()
 
-
     def register_map(self, name, portals=None):
         if portals is None:
             portals = []
@@ -122,9 +128,15 @@ class MapManager:
             for y, line in enumerate(water_blocks):
                 for group in groups_in_list(line, code='X', blank=' '):
                     walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
-        # Définir une liste de champignons
 
+        # Définir une liste de champignons
         mushrooms = []
+        if 'mushroom' in tmx_data.layernames:
+            print("J'ai trouvé des champignons, je les initialise")
+            # Les champignons sont sur 2 cases : éléments 43 et 46.
+            for item in tmx_data.layernames['mushroom'].data:
+                mushrooms.append(Mushroom(item , points= 10 , display= True))
+
         for obj in tmx_data.objects:
             if obj.type == "mushroom":
                 mushrooms.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
@@ -159,11 +171,7 @@ class MapManager:
                 # Il faut désactiver le champignon ramassé.
 
             if sprite.feet.collidelist(self.get_walls()) > -1:
-                print("Wall")
                 sprite.move_back()
-
-
-
 
     def get_map(self):
         return self.maps[self.current_map]

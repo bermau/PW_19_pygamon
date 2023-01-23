@@ -35,9 +35,11 @@ class PlayerEntity(pygame.sprite.Sprite):
     def move_left(self):
         self.position[0] -= self.speed
 
-    def move_up(self): self.position[1] -= self.speed
+    def move_up(self):
+        self.position[1] -= self.speed
 
-    def move_down(self): self.position[1] += self.speed
+    def move_down(self):
+        self.position[1] += self.speed
 
     def update(self):
         self.rect.topleft = self.position
