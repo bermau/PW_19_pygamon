@@ -106,12 +106,15 @@ class MapManager:
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
 
-        # Définir une liste de collisions
+        # Définir une liste de collisions et champignons
         walls = []
-
+        mushrooms = []
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+            elif obj.type == "mushroom":
+                mushrooms.append(Mushroom(pygame.Rect(obj.x, obj.y, obj.width, obj.height), points=15, display=True))
+                print("Found a mushroom....")
 
         # # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
         water_blocks = []
@@ -129,17 +132,6 @@ class MapManager:
                 for group in groups_in_list(line, code='X', blank=' '):
                     walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
 
-        # Définir une liste de champignons
-        mushrooms = []
-        if 'mushroom' in tmx_data.layernames:
-            print("J'ai trouvé des champignons, je les initialise")
-            # Les champignons sont sur 2 cases : éléments 43 et 46.
-            for item in tmx_data.layernames['mushroom'].data:
-                mushrooms.append(Mushroom(item , points= 10 , display= True))
-
-        for obj in tmx_data.objects:
-            if obj.type == "mushroom":
-                mushrooms.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
 
         # Dessiner le groupe de calques
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=8)
