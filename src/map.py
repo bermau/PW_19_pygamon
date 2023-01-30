@@ -44,10 +44,31 @@ class Portal:
 
 @dataclass
 class Mushroom:
-    """A champignon est un rect avec un certain nombre de points et un indicateur pour l'afficher ou non."""
+    """Un champignon est un rect avec un certain nombre de points et un indicateur pour l'afficher ou non."""
     rect : pygame.Rect
     points: int  # nombre de points
     display: bool
+
+# Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__()
+
+        self.image = pygame.image.load("../map/coin.png")
+        self.rect = self.image.get_rect()
+
+        self.rect.topleft = pos
+        self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
+
+    def update(self):
+        # if self.rect.colliderect(P1.rect):
+        #     print("Colecting a coin !")
+        #     # P1.score += 5
+        #     self.kill()
+        pass
+
+    def move_back(self):
+        pass
 
 
 @dataclass
@@ -71,7 +92,7 @@ class MapManager:
         self.register_map('world', portals=[
             Portal(from_world="world", origin_point='enter_house', target_world="house",
                    teleport_point="spawn_from_world")
-        ])
+                                           ])
         # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
         # Attention le from_world doit absolument avoir tous les origine_points.
         self.register_map('house', portals=[
@@ -79,14 +100,14 @@ class MapManager:
                    teleport_point="spawn_from_house"),
             Portal(from_world='house', origin_point='enter_dungeon', target_world='dungeon',
                    teleport_point="spawn_from_house")
-        ])
+                                            ])
 
         self.register_map('dungeon', portals=[
             Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
                    teleport_point="spawn_from_dungeon"),
             Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
                    teleport_point="spawn_from_dungeon")
-        ])
+                                             ])
 
         self.teleport_player('player')
 
@@ -109,12 +130,19 @@ class MapManager:
         # Définir une liste de collisions et champignons
         walls = []
         mushrooms = []
+        coins = pygame.sprite.Group()
+
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+            # Les 2 lignes ci-dessous sont en pratique inefficaces.
             elif obj.type == "mushroom":
                 mushrooms.append(Mushroom(pygame.Rect(obj.x, obj.y, obj.width, obj.height), points=15, display=True))
-                print("Found a mushroom....")
+                print(f"Found a mushroom in map '{name}'....")
+        # Je vais ajouter des coins comme des sprites (méthode venant de
+        # https://coderslegacy.com/pygame-platformer-coins-and-images/ )
+        coins.add(Coin((55, 60)))
+        coins.add(Coin((255, 600)))
 
         # # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
         water_blocks = []
@@ -136,12 +164,12 @@ class MapManager:
         # Dessiner le groupe de calques
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=8)
         group.add(self.player)
+        group.add(coins)
 
         # Créer un objet Map
         self.maps[name] = Map(name, walls, group, tmx_data, portals, mushrooms)
 
     def check_collision(self):
-
         # portals
         for portal in self.get_map().portals:
             if portal.from_world == self.current_map:
@@ -152,18 +180,32 @@ class MapManager:
                     copy_portal = portal
                     self.current_map = portal.target_world
                     self.teleport_player(copy_portal.teleport_point)
-                    # self.master_game.point_counter
                     self.master_game.point_counter.points += 100
 
-        # collisions
-        for sprite in self.get_group().sprites():
-            if sprite.feet.collidelist(self.get_mushrooms()) > -1:
-                print("Mushroom")
-                self.master_game.point_counter.points += 20
-                # Il faut désactiver le champignon ramassé.
-
+        # mushrooms and collisions
+        LE_GROUP = self.get_group()
+        for sprite in LE_GROUP.sprites():
             if sprite.feet.collidelist(self.get_walls()) > -1:
                 sprite.move_back()
+            # elif sprite.feet.collidelist(self.get_coins()) > -1:
+            #     rint("Collect a coin ! ")
+            elif sprite.feet.collidelist(self.get_mushrooms()) > -1:
+                for mush in self.get_mushrooms():
+                    if sprite.feet.collidelist([mush.rect])> -1:
+                        if mush.display:
+                            print("Collect a mushroom")
+                            mush.display = False
+
+                            self.master_game.point_counter.points += mush.points
+                            break
+        for my_sprite in LE_GROUP.sprites():
+            pass
+            if isinstance (my_sprite, Coin):
+
+                if self.player.feet.colliderect(my_sprite):
+                    print("Miam !")
+                    self.master_game.point_counter.points += 20
+                    my_sprite.kill()
 
     def get_map(self):
         return self.maps[self.current_map]
@@ -186,5 +228,4 @@ class MapManager:
 
     def update(self):
         self.get_group().update()
-        # self.group.update()
         self.check_collision()

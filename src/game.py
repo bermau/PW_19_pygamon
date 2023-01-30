@@ -45,15 +45,17 @@ class Game:
         while running:
             self.player.save_location()
             self.handle_input()
-            self.update()
 
+            self.map_manager.update()
             self.map_manager.draw()
             self.point_counter.render(self.screen)
 
             pygame.display.flip()
+
             for even in pygame.event.get():
                 if even.type == pygame.QUIT:
                     running = False
+
             clock.tick(60)  # nb images /sec
         pygame.quit()
 
