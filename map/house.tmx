@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="25" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="16">
+<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="25" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="22">
  <tileset firstgid="1" source="tileset_house.tsx"/>
  <layer id="1" name="floor" width="25" height="25">
   <data encoding="csv">
@@ -135,5 +135,11 @@
   <object id="15" name="spawn_from_dungeon" x="309.139" y="131.636">
    <point/>
   </object>
+  <object id="16" type="coin_place" x="310.515" y="70.1754"/>
+  <object id="17" type="coin_place" x="117.876" y="30.7304"/>
+  <object id="18" type="coin_place" x="150.9" y="30.7304"/>
+  <object id="19" type="coin_place" x="183.465" y="31.1891"/>
+  <object id="20" type="coin_place" x="360.05" y="183.465"/>
+  <object id="21" type="coin_place" x="279.784" y="249.054"/>
  </objectgroup>
 </map>
