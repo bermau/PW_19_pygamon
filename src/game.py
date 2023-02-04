@@ -1,5 +1,5 @@
 import pygame
-from player import PlayerEntity
+from player import Player
 from src.map import MapManager
 from counter import Counter
 
@@ -13,8 +13,10 @@ class Game:
         pygame.display.set_caption("Dinosaure aventure")
 
         # générer un joueur
-        self.player = PlayerEntity('player', 0, 0)
-        self.map_manager = MapManager(self, self.screen, self.player)
+        self.player = Player(0, 0)
+        # self.single_npc = NPC('robin', 600, 500)
+
+        self.map_manager = MapManager(self, self.screen, self.player,)
 
         # Un compteur
         self.point_counter = Counter()

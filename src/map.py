@@ -7,6 +7,8 @@ import pyscroll
 import pytmx
 from random import randint
 
+from src.player import NPC
+
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs.
@@ -67,22 +69,29 @@ class Map:
     group: pyscroll.PyscrollGroup
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
-
+    npcs: list[NPC]
 
 class MapManager:
+    """General manager of all maps"""
     def __init__(self, master_game, screen, player):
+        """Charge les cartes, puis téléporte le joueur et enfin les NPC"""
         self.master_game = master_game
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
+        # self.single_npc = single_npc
         self.current_map = 'world'
 
+        # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
+        # Attention le from_world doit absolument avoir tous les origine_points.
         self.register_map('world', portals=[
             Portal(from_world="world", origin_point='enter_house', target_world="house",
                    teleport_point="spawn_from_world")
-        ])
-        # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
-        # Attention le from_world doit absolument avoir tous les origine_points.
+        ], npcs=[NPC('paul', nb_points=4)
+                 # ,NPC('robin', nb_points=4)
+                          ]
+                          )
+
         self.register_map('house', portals=[
             Portal(from_world='house', origin_point='enter_world', target_world='world',
                    teleport_point="spawn_from_house"),
@@ -98,20 +107,23 @@ class MapManager:
         ])
 
         self.teleport_player('player')
+        self.teleport_npcs()
 
-    def teleport_player(self, pos_name):
-        point = self.get_object(pos_name)
+    def teleport_player(self, player_name):
+        point = self.get_object(player_name)
         self.player.position[0] = point.x - 16
         self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
         self.player.save_location()
 
-    def register_map(self, name, portals=None):
+    def register_map(self, map_name, portals=None, npcs=None):
+        if npcs is None:
+            npcs = []
         if portals is None:
             portals = []
-        print("Registering map", name)
+        print("Registering map", map_name)
 
         # Charger les cartes
-        tmx_data = pytmx.util_pygame.load_pygame(f"../map/{name}.tmx")
+        tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
@@ -125,12 +137,10 @@ class MapManager:
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-            # Les 2 lignes ci-dessous sont en pratique inefficaces.
             elif obj.type == "coin_place":
-                print(f"Found a coin_place in map '{name}'....")
                 coins.add(Coin((obj.x - 24, obj.y - 24)))  # Valeur mal ajustée
 
-        # # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
+        # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
         water_blocks = []
         if 'water' in tmx_data.layernames:
             for y, line in enumerate(tmx_data.layernames['water'].data):
@@ -150,10 +160,20 @@ class MapManager:
         # default_layer à 0 : bonhomme sur herbe, sous chemin
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5) # Pourquoi 5 :
         group.add(self.player)
+        # group.add(npcs)
         group.add(coins)
+        for npc in npcs:
+            group.add(npc)
 
         # Créer un objet Map
-        self.maps[name] = Map(name, walls, group, tmx_data, portals)
+        self.maps[map_name] = Map(map_name, walls, group, tmx_data, portals, npcs)
+
+    def teleport_npcs(self):
+        for map_name in self.maps:
+            map_data = self.maps[map_name]
+            for npc in map_data.npcs:
+                npc.load_points(self)
+                npc.teleport_npc()
 
     def check_collision(self):
         # portals
@@ -195,5 +215,9 @@ class MapManager:
         self.get_group().center(self.player.rect.center)
 
     def update(self):
+        """Fonction pour toutes les maps, appelée à chaque image"""
         self.get_group().update()
         self.check_collision()
+        # Bouger les NPC
+        for npc in self.get_map().npcs:
+            npc.move()
