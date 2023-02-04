@@ -1,3 +1,5 @@
+
+
 from dataclasses import dataclass
 
 import pygame
@@ -145,7 +147,8 @@ class MapManager:
                     walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
 
         # Dessiner le groupe de calques
-        group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=7)
+        # default_layer à 0 : bonhomme sur herbe, sous chemin
+        group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5) # Pourquoi 5 :
         group.add(self.player)
         group.add(coins)
 
