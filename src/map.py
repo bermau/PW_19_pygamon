@@ -1,13 +1,12 @@
-
-
+import re
 from dataclasses import dataclass
 
 import pygame
 import pyscroll
 import pytmx
 from random import randint
-
 from src.player import NPC
+import player
 
 
 def groups_in_list(lst, code='X', blank=' '):
@@ -84,29 +83,31 @@ class MapManager:
 
         # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
         # Attention le from_world doit absolument avoir tous les origine_points.
-        self.register_map('world', portals=[
-            Portal(from_world="world", origin_point='enter_house', target_world="house",
-                   teleport_point="spawn_from_world")
-        ], npcs=[
-                 NPC('paul', nb_areas=4)
-            ,
-                 NPC('robin', nb_areas=4)
-                 ]
+        self.register_map('world',
+                          portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
+                                          teleport_point="spawn_from_world")],
+                          npcs=[
+                              # NPC('paul', nb_areas=4),    # en haut
+                                NPC('robin', nb_areas=4, screen=self.screen)  # en bas
+                                ]
                           )
+        AA = self.get_objects_regex(map=self.maps['world'], regex = r"paul_path.*")
+        print("Object pour Paul ", AA)
+        self.register_map('house',
+                          portals=[
+                              Portal(from_world='house', origin_point='enter_world', target_world='world',
+                                     teleport_point="spawn_from_house"),
+                              Portal(from_world='house', origin_point='enter_dungeon', target_world='dungeon',
+                                     teleport_point="spawn_from_house")
+                          ])
 
-        self.register_map('house', portals=[
-            Portal(from_world='house', origin_point='enter_world', target_world='world',
-                   teleport_point="spawn_from_house"),
-            Portal(from_world='house', origin_point='enter_dungeon', target_world='dungeon',
-                   teleport_point="spawn_from_house")
-        ])
-
-        self.register_map('dungeon', portals=[
-            Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
-                   teleport_point="spawn_from_dungeon"),
-            Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
-                   teleport_point="spawn_from_dungeon")
-        ])
+        self.register_map('dungeon',
+                          portals=[
+                              Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
+                                     teleport_point="spawn_from_dungeon"),
+                              Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
+                                     teleport_point="spawn_from_dungeon")
+                          ])
 
         self.teleport_player('player')
         self.teleport_npcs()
@@ -211,6 +212,26 @@ class MapManager:
 
     def get_object(self, name):
         return self.get_map().tmx_data.get_object_by_name(name)
+
+    # Le but est de trouver automatiquement le nombre d'objets correspondant à une regex
+    # par exmeple "paul_path\d"
+    def get_objects_regex(self, map, regex):
+        """Return objects witch name match with a regex"""
+        carte = map.tmx_data
+        all_objects= carte.objects
+
+        matching_lst = []
+        for tiled_object in all_objects:
+            print(tiled_object)
+            if re.match(regex, str(tiled_object.name)):
+
+                matching_lst.append(tiled_object)
+        print(matching_lst)
+
+        return matching_lst
+
+
+        pass
 
     def draw(self):
         self.get_group().draw(self.screen)

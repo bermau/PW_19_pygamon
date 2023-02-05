@@ -1,22 +1,23 @@
 import pygame
+
+import player
 from player import Player
 from src.map import MapManager
 from counter import Counter
 
-class Game:
 
+class Game:
     def __init__(self):
         pygame.init()
 
         # créer la fenêtre du jeu
-        self.screen = pygame.display.set_mode((800, 600))
+        self.screen = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("Dinosaure aventure")
+        player.SCREEN = self.screen
 
         # générer un joueur
         self.player = Player(0, 0)
-
-        self.map_manager = MapManager(self, self.screen, self.player,)
-
+        self.map_manager = MapManager(self, self.screen, self.player)
         # Un compteur
         self.point_counter = Counter()
 
@@ -59,4 +60,5 @@ class Game:
 
             clock.tick(60)  # nb images /sec
         pygame.quit()
+
 
