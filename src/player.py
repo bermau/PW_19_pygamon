@@ -26,8 +26,9 @@ class Entity(pygame.sprite.Sprite):
     def save_location(self):
         self.old_position = self.position.copy()
 
-    def change_animation(self, name):
-        self.image = self.images[name]
+    def change_animation(self, attitude):
+        # ('up', 'down', 'left', 'right')
+        self.image = self.images[attitude]
         self.image.set_colorkey((0, 0, 0))
 
     def move_right(self):
@@ -83,9 +84,9 @@ class NPC(Entity):
         # modify speed
         self.speed = self.speed + randint(-1, 1)
         if self.speed == 0:
-            self.speed = 2
-        elif self.speed == 6:
-            self.speed = 5
+            self.speed = 1
+        elif self.speed == 5:
+            self.speed = 4
 
     def teleport_npc(self):
         first_area = self.areas[0]
@@ -98,6 +99,7 @@ class NPC(Entity):
         pygame.Rect"""
         for num in range(1, self.nb_areas + 1):
             obj= maps_manager.get_object(f'{self.name}_path{num}')
+
             rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
             self.areas.append(rect)
 
@@ -110,12 +112,16 @@ class NPC(Entity):
         target_rect = self.areas[self.next_areas_idx]
 
         if current_rect.y < target_rect.y and abs(current_rect.x - target_rect.x) < 3:
+            self.change_animation('down') # 'up', 'down', 'left', 'right'
             self.move_down()
         elif current_rect.y >= target_rect.y and abs(current_rect.x - target_rect.x)< 3:
+            self.change_animation('up')
             self.move_up()
         elif current_rect.x < target_rect.x and abs(current_rect.y - target_rect.y)< 3:
+            self.change_animation('right')
             self.move_right()
         elif current_rect.x >= target_rect.x and abs(current_rect.y - target_rect.y)< 3:
+            self.change_animation('left')
             self.move_left()
 
         if self.rect.colliderect(target_rect):
