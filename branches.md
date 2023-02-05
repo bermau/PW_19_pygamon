@@ -21,6 +21,7 @@ J'ai ajouté des NPC (Non playing Characters), PNG Personnages non joueurs. Ils 
 carrés rectangles prédéfinis. 
 
 Merged sur master
+## devel
 
-## 23_02_PNJ_en_mouvement_diagonal
-Faire en sorte que le regard du PNG soit dans le sens de la marche !
+
+
