@@ -99,6 +99,7 @@ class NPC(Entity):
         pygame.Rect"""
         for num in range(1, self.nb_areas + 1):
             obj= maps_manager.get_object(f'{self.name}_path{num}')
+
             rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
             self.areas.append(rect)
 
