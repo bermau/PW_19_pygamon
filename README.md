@@ -15,7 +15,7 @@ Artist : [DoubleLeggy](https://www.deviantart.com/doubleleggy/)
 [/assets/dialogs](/assets/dialogs)
 
 # Views
-![The world](/home/bertrand/important/prog_local/PW_19_pygamon/images/world.png)
+![The world](./images/world.png)
 
 # Starting the game
 1) Download this files.
