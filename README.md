@@ -14,6 +14,9 @@ Artist : [DoubleLeggy](https://www.deviantart.com/doubleleggy/)
 # Dialogs assets
 [/assets/dialogs](/assets/dialogs)
 
+# Views
+![The world](/home/bertrand/important/prog_local/PW_19_pygamon/images/world.png)
+
 # Starting the game
 1) Download this files.
 2) You need Python 3 and some librairies: pygame, pyscroll, pytmx.
