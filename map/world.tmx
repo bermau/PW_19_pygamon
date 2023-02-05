@@ -445,13 +445,13 @@
   <object id="71" type="coin_place" x="265" y="663"/>
  </objectgroup>
  <objectgroup id="11" name="NPC_paths">
-  <object id="72" name="paul_path1" x="256.727" y="335.318" width="16.5" height="17"/>
-  <object id="73" name="paul_path2" x="304.364" y="334.682" width="15.6364" height="15.8182"/>
-  <object id="74" name="paul_path3" x="304.364" y="399.364" width="15.6364" height="15.8182"/>
-  <object id="75" name="paul_path4" x="256.864" y="399.545" width="15.6364" height="15.4545"/>
-  <object id="76" name="robin_path1" x="225" y="320.5" width="16.5" height="16.5"/>
-  <object id="77" name="robin_path2" x="368.5" y="319.5" width="16.5" height="16"/>
-  <object id="78" name="robin_path3" x="368" y="384" width="17.5" height="15"/>
-  <object id="79" name="robin_path4" x="225" y="384.5" width="15.5" height="15.5"/>
+  <object id="72" name="paul_path1" x="208.061" y="47.9848" width="16.5" height="17"/>
+  <object id="73" name="paul_path2" x="369.03" y="48.0152" width="15.6364" height="15.8182"/>
+  <object id="74" name="paul_path3" x="369.03" y="96.697" width="15.6364" height="15.8182"/>
+  <object id="75" name="paul_path4" x="208.197" y="96.2121" width="15.6364" height="15.4545"/>
+  <object id="76" name="robin_path1" x="225" y="320.5" width="5.83333" height="6.16667"/>
+  <object id="77" name="robin_path2" x="377.167" y="321.167" width="5.83333" height="6.66667"/>
+  <object id="78" name="robin_path3" x="377" y="392.333" width="6.16667" height="6.33333"/>
+  <object id="79" name="robin_path4" x="224.667" y="392.833" width="6.16667" height="6.83333"/>
  </objectgroup>
 </map>

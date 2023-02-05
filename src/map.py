@@ -87,9 +87,11 @@ class MapManager:
         self.register_map('world', portals=[
             Portal(from_world="world", origin_point='enter_house', target_world="house",
                    teleport_point="spawn_from_world")
-        ], npcs=[NPC('paul', nb_points=4)
-                 # ,NPC('robin', nb_points=4)
-                          ]
+        ], npcs=[
+                 NPC('paul', nb_areas=4)
+            ,
+                 NPC('robin', nb_areas=4)
+                 ]
                           )
 
         self.register_map('house', portals=[

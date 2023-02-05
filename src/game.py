@@ -14,7 +14,6 @@ class Game:
 
         # générer un joueur
         self.player = Player(0, 0)
-        # self.single_npc = NPC('robin', 600, 500)
 
         self.map_manager = MapManager(self, self.screen, self.player,)
 

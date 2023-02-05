@@ -1,6 +1,5 @@
 import pygame
-
-
+from random import randint
 
 
 class Entity(pygame.sprite.Sprite):
@@ -42,7 +41,6 @@ class Entity(pygame.sprite.Sprite):
 
     def move_down(self):
         self.position[1] += self.speed
-        print(self.position[1])
 
     def update(self):
         self.rect.topleft = self.position
@@ -65,37 +63,52 @@ class Player(Entity):
 
 
 class NPC(Entity):
-    def __init__(self, name, nb_points):
+    def __init__(self, name, nb_areas):
         super().__init__(name, 500, 550)
         self.name= name
         self.change_animation("left")
-        self.nb_points = nb_points
-        self.points = []
-        self.current_point = 0
+        self.nb_areas = nb_areas
+        self.areas = []  # Les areas : liste de Rect
+        self.current_area_idx = 0  # index de area
+        self.next_areas_idx = 1
+
+    def calculate_next_area_idx(self):
+        # areas is a Rect
+        self.current_area_idx += 1
+        if self.current_area_idx == self.nb_areas:
+            self.current_area_idx = 0
+        self.next_areas_idx += 1
+        if self.next_areas_idx == self.nb_areas:
+            self.next_areas_idx = 0
+        # modify speed
+        self.speed = self.speed + randint(-1, 1)
+        if self.speed == 0:
+            self.speed = 2
+        elif self.speed == 6:
+            self.speed = 5
 
     def teleport_npc(self):
-        premier_point = self.points[self.current_point]
-
-        self.position[0] = premier_point.x
-        self.position[1] = premier_point.y
+        first_area = self.areas[0]
+        self.position[0] = first_area.x
+        self.position[1] = first_area.y
         self.save_location()
 
     def load_points(self, maps_manager):
-        """Récupères les objets de la carte qui indiquent la position de passage du NPC, et les transforme en liste de
+        """Récupère les objets de la carte qui indiquent la position de passage du NPC, et les transforme en liste de
         pygame.Rect"""
-        for num in range(1, self.nb_points+1):
+        for num in range(1, self.nb_areas + 1):
             obj= maps_manager.get_object(f'{self.name}_path{num}')
             rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-            self.points.append(rect)
+            self.areas.append(rect)
 
     def move(self):
         """Sera appelé à chaque étape : calcul un mouvement automatique du NPC"""
-        current_point = self.current_point
-        target_point = current_point + 1
+        # current_idx = self.current_area_idx
+        # target_idx = self.next_areas_idx
 
-        current_rect = self.points[current_point]
-        target_rect = self.points[target_point]
-        print(self.position[0], self.position[1])
+        current_rect = self.areas[self.current_area_idx]
+        target_rect = self.areas[self.next_areas_idx]
+
         if current_rect.y < target_rect.y and abs(current_rect.x - target_rect.x) < 3:
             self.move_down()
         elif current_rect.y >= target_rect.y and abs(current_rect.x - target_rect.x)< 3:
@@ -106,14 +119,5 @@ class NPC(Entity):
             self.move_left()
 
         if self.rect.colliderect(target_rect):
-            self.current_point = target_point
-        if self.current_point == self.nb_points -1:
-            self.current_point = 1
-
-
-
-
-
-
-
+            self.calculate_next_area_idx()
 
