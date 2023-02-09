@@ -24,6 +24,7 @@ def groups_in_list(lst, code='X', blank=' '):
             first = lst.index(code, current)
         except ValueError:
             break
+
         try:
             last = lst.index(blank, first + 1)
         except ValueError:
@@ -78,7 +79,6 @@ class MapManager:
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
-        # self.single_npc = single_npc
         self.current_map = 'world'
 
         # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
@@ -175,7 +175,10 @@ class MapManager:
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.load_points(self)
+                npc.load_areas(self)
+                # npc.calculate_next_area_idx()
+                npc.define_first_target()
+                npc.calculate_move_direction()
                 npc.teleport_npc()
 
     def check_collision(self):

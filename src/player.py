@@ -1,10 +1,8 @@
 import random
-
 import pygame
 from random import randint
 
-TEST = True
-
+verbose = False
 
 class Entity(pygame.sprite.Sprite):
 
@@ -35,6 +33,7 @@ class Entity(pygame.sprite.Sprite):
         # ('up', 'down', 'left', 'right')
         self.image = self.images[attitude]
         self.image.set_colorkey((0, 0, 0))
+        print(f"Changed animation to {attitude}")
 
     def move_right(self):
         self.position[0] += self.speed
@@ -76,56 +75,62 @@ class NPC(Entity):
         self.change_animation("left")
         self.nb_areas = nb_areas
         self.areas = []  # Les areas : liste de Rect
-        self.current_area_idx = 0  # index de area
-        self.next_areas_idx = 1
-        self.move_direction = 'NW'  # 'N', 'W','E', 'S', 'NW', 'NE', 'SW', 'SE'
 
-        if TEST:
-            self.define_test_target()
-        #     self.calculate_move_direction()
+        self.current_area_idx = randint(0, self.nb_areas-1)  # index de area
+        self.next_areas_idx = None
+        # self.define_first_target()
 
     def calculate_next_area_idx(self):
-        if TEST:
-            if self.current_area_idx == 0:
-                self.current_area_idx = 2
-                self.next_areas_idx = 0
-                self.move_direction = 'NW'
 
-            elif self.current_area_idx == 2:
-                self.current_area_idx = 0
-                self.next_areas_idx = 2
+        while True:
+            rnd = randint(0, self.nb_areas-1)
+            if rnd != self.current_area_idx:
+                self.next_areas_idx = rnd
+                break
+        print(f"La prochaine cible a un indice de {self.next_areas_idx}")
+        self.modify_speed()
+
+    def modify_speed(self):
+        # modify speed
+        self.speed = self.speed + randint(-1, 1)
+        if self.speed == 0:
+            self.speed = 1
+        elif self.speed == 4:
+            self.speed = 3
+
+    def calculate_move_direction(self):
+        """Mon algorithme est assez primaire. Il a besoin de déterminer la direction générale à prendre."""
+        target_point = self.areas[self.next_areas_idx].center
+        feet_point = self.feet.center
+
+        rect = pygame.Rect(feet_point[0], feet_point[1],
+                           target_point[0] - feet_point[0], target_point[1] - feet_point[1])
+        x, y, w, h = rect
+        print("Le rectangle est ", x, y, w, h)
+        if w > 0:
+            if h > 0:
                 self.move_direction = 'SE'
             else:
-                raise ValueError("Cas pas prévu")
+                self.move_direction = 'NE'
+        else:  # W est neg
+            if h > 0:
+                self.move_direction = 'SW'
+            else:
+                self.move_direction = 'NW'
+        print(f"Nouvelle cible : {self.next_areas_idx}, direction : {self.move_direction}")
 
-        else:
-            # areas is a Rect
-            self.current_area_idx += 1
-            if self.current_area_idx == self.nb_areas:
-                self.current_area_idx = 0
-            self.next_areas_idx += 1
-            if self.next_areas_idx == self.nb_areas:
-                self.next_areas_idx = 0
-
-            # modify speed
-            self.speed = self.speed + randint(-1, 1)
-            if self.speed == 0:
-                self.speed = 1
-            elif self.speed == 5:
-                self.speed = 4
-
-    def define_test_target(self):
+    def define_first_target(self):
         self.current_area_idx = 0  # index de area
         self.next_areas_idx = 2
         self.move_direction = 'SE'
 
     def teleport_npc(self):
-        first_area = self.areas[0]
+        first_area = self.areas[self.current_area_idx]
         self.position[0] = first_area.x
         self.position[1] = first_area.y
         self.save_location()
 
-    def load_points(self, maps_manager):
+    def load_areas(self, maps_manager):
         """Récupère les objets de la carte qui indiquent la position de passage du NPC, et les transforme en liste de
         pygame. Rect"""
         for num in range(1, self.nb_areas + 1):
@@ -134,42 +139,58 @@ class NPC(Entity):
             self.areas.append(rect)
 
     def move(self):
-        if TEST:
-            feet_rect = self.feet
-            target_rect = self.areas[self.next_areas_idx]
-            feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
-                                    target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
-            if self.move_direction == 'SE':
-                move1 = self.move_right
-                move2 = self.move_down
-            elif self.move_direction == 'NW':
-                move1 = self.move_up
-                move2 = self.move_left
+        """Mouvement automatique. Algorithme très primaire."""
+        feet_rect = self.feet
+        target_rect = self.areas[self.next_areas_idx]
+        feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
+                                target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
+        if self.move_direction == 'SE':
+            move_horz = self.move_right
+            move_vert = self.move_down
+            self.change_animation("right")
 
-            if feet_to_target_rect.height == 0:
-                feet_to_target_rect.height = 1
-                move2()
-            else:
-                odd_ratio = feet_to_target_rect.width / feet_to_target_rect.height
-                print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_ratio}")
+        elif self.move_direction == 'NW':
+            move_horz = self.move_left
+            move_vert = self.move_up
+            self.change_animation("left")
 
-                if odd_ratio == 0:
-                    move2()
-                else:
-                    prob = 1 / odd_ratio
-                    rnd = random.random()
-                    print(f"La valeur aléatoire est {rnd} ; prob vaut {prob}")
-                    if rnd < prob:
-                        move2()
-                    else:
-                        move1()
+        elif self.move_direction == 'SW':
+            move_horz = self.move_left
+            move_vert = self.move_down
+            self.change_animation("left")
 
-            if self.rect.colliderect(target_rect):
-                self.calculate_next_area_idx()
-                # self.calculate_move_direction()
+        elif self.move_direction == 'NE':
+            move_horz = self.move_right
+            move_vert = self.move_up
+            self.change_animation("right")
 
+        if feet_to_target_rect.height == 0:
+            feet_to_target_rect.height = 5
+            move_vert()
         else:
-            self.rectangular_move()
+            # odd n'est sans doute pas le bon terme.
+            try:
+                odd_horiz_mvt = feet_to_target_rect.width / (feet_to_target_rect.height + feet_to_target_rect.width)
+            except ZeroDivisionError:
+                odd_horiz_mvt = 0.95
+
+            if verbose: print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_horiz_mvt}")
+
+            if odd_horiz_mvt == 0:
+                move_vert()
+            else:
+                rnd = random.random()
+                # print(f"La valeur aléatoire est {rnd} ; limite de probabilité vaut {odd_horiz_mvt} : ", end = '')
+                if rnd > odd_horiz_mvt:
+                    move_vert()
+                else:
+                    move_horz()
+
+        if self.rect.colliderect(target_rect):
+            print(f"NEXT TARGET for {self.name}")
+            self.current_area_idx = self.next_areas_idx
+            self.calculate_next_area_idx()
+            self.calculate_move_direction()
 
     def rectangular_move(self):
         """Sera appelé à chaque étape : calcul un mouvement automatique du NPC"""
