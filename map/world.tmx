@@ -449,9 +449,9 @@
   <object id="73" name="paul_path2" x="369.03" y="48.0152" width="15.6364" height="15.8182"/>
   <object id="74" name="paul_path3" x="369.03" y="96.697" width="15.6364" height="15.8182"/>
   <object id="75" name="paul_path4" x="208.197" y="96.2121" width="15.6364" height="15.4545"/>
-  <object id="76" name="robin_path1" x="225" y="320.5" width="9.08333" height="8.66667"/>
+  <object id="76" name="robin_path1" x="225" y="320.5" width="29.8333" height="32.4167"/>
   <object id="77" name="robin_path2" x="377.167" y="321.167" width="5.83333" height="6.66667"/>
-  <object id="78" name="robin_path3" x="374.75" y="390.583" width="9.16667" height="8.58333"/>
+  <object id="78" name="robin_path3" x="375.75" y="390.833" width="32.1667" height="30.8333"/>
   <object id="79" name="robin_path4" x="224.667" y="392.833" width="6.16667" height="6.83333"/>
  </objectgroup>
 </map>

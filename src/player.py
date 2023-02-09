@@ -135,10 +135,10 @@ class NPC(Entity):
 
     def move(self):
         if TEST:
-            current_rect = self.rect
+            feet_rect = self.feet
             target_rect = self.areas[self.next_areas_idx]
-            main_rect = pygame.Rect(current_rect.x, current_rect.y,
-                                    target_rect.x - current_rect.x, target_rect.y - current_rect.y)
+            feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
+                                    target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
             if self.move_direction == 'SE':
                 move1 = self.move_right
                 move2 = self.move_down
@@ -146,12 +146,12 @@ class NPC(Entity):
                 move1 = self.move_up
                 move2 = self.move_left
 
-            if main_rect.height == 0:
-                main_rect.height = 1
+            if feet_to_target_rect.height == 0:
+                feet_to_target_rect.height = 1
                 move2()
             else:
-                odd_ratio = main_rect.width / main_rect.height
-                print(f"{main_rect}, {self.name} Odd ratio : {odd_ratio}")
+                odd_ratio = feet_to_target_rect.width / feet_to_target_rect.height
+                print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_ratio}")
 
                 if odd_ratio == 0:
                     move2()
