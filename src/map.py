@@ -5,8 +5,8 @@ import pygame
 import pyscroll
 import pytmx
 from random import randint
-
 from src.player import NPC
+import player
 
 
 def groups_in_list(lst, code='X', blank=' '):
@@ -24,6 +24,7 @@ def groups_in_list(lst, code='X', blank=' '):
             first = lst.index(code, current)
         except ValueError:
             break
+
         try:
             last = lst.index(blank, first + 1)
         except ValueError:
@@ -78,7 +79,6 @@ class MapManager:
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
-        # self.single_npc = single_npc
         self.current_map = 'world'
 
         # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
@@ -86,9 +86,13 @@ class MapManager:
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[NPC('paul', nb_areas=4), NPC('robin', nb_areas=4)]
+                          npcs=[
+                              # NPC('paul', nb_areas=4),    # en haut
+                                NPC('robin', nb_areas=4, screen=self.screen)  # en bas
+                                ]
                           )
-
+        AA = self.get_objects_regex(map=self.maps['world'], regex = r"paul_path.*")
+        print("Object pour Paul ", AA)
         self.register_map('house',
                           portals=[
                               Portal(from_world='house', origin_point='enter_world', target_world='world',
@@ -171,7 +175,10 @@ class MapManager:
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.load_points(self)
+                npc.load_areas(self)
+                # npc.calculate_next_area_idx()
+                npc.define_first_target()
+                npc.calculate_move_direction()
                 npc.teleport_npc()
 
     def check_collision(self):
@@ -209,9 +216,25 @@ class MapManager:
     def get_object(self, name):
         return self.get_map().tmx_data.get_object_by_name(name)
 
-    def get_objects_regex(self, regex):
-        """Return objectd witch name match with a regex"""
-        AA = self.get_map().tmx_data
+    # Le but est de trouver automatiquement le nombre d'objets correspondant à une regex
+    # par exmeple "paul_path\d"
+    def get_objects_regex(self, map, regex):
+        """Return objects witch name match with a regex"""
+        carte = map.tmx_data
+        all_objects= carte.objects
+
+        matching_lst = []
+        for tiled_object in all_objects:
+            print(tiled_object)
+            if re.match(regex, str(tiled_object.name)):
+
+                matching_lst.append(tiled_object)
+        print(matching_lst)
+
+        return matching_lst
+
+
+        pass
 
     def draw(self):
         self.get_group().draw(self.screen)
