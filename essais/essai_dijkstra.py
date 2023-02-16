@@ -18,7 +18,7 @@ class Graph():
     def node_with_min_distance(self, dist, visited):
         min = sys.maxsize
         for v in range(self.dim):
-            if dist[v] < min and visited[v] == False:
+            if dist[v] < min and not visited[v]:
                 min = dist[v]
                 min_index = v
         return min_index
@@ -30,16 +30,18 @@ class Graph():
         # initialize list of visited nodes
         visited = [False] * self.dim
 
-        for cout in range(self.dim):
+        for _ in range(self.dim):
+            print("Distances", distance)
             print("Visited", visited)
             u = self.node_with_min_distance(distance, visited)
+            print("index de plus petite distance", u, "on travaille maintenant sur noeud.")
             visited[u] = True
-            print(f"ligne u vaut : {u}")
+            print(f"ligne pour u = {u} vaut : {self.graph[u]}")
             for v in range(self.dim):
                 print(f"test pour u {u} du noeud v {v} ")
                 print(f"{self.graph[u][v]}, {visited[u]}, {distance[u] + self.graph[u][v]}")
                 if self.graph[u][v] > 0 \
-                        and visited[v] == False \
+                        and not visited[v] \
                         and distance[v] > distance[u] + self.graph[u][v]:
 
                     distance[v] = distance[u] + self.graph[u][v]
