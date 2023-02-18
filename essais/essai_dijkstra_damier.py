@@ -2,7 +2,7 @@
 # Adaptation à un damier
 
 import sys
-
+from pprint import pprint
 
 class Point:
     def __init__(self, x, y ):
@@ -12,14 +12,51 @@ class Point:
     def __repr__(self):
         return f"Point ({self.x}, {self.y})"
 
+    def top(self):
+        return Point(self.x-1, self.y)
+
+    def bottom(self):
+        return Point(self.x + 1, self.y)
+
+    def left(self):
+        return Point(self.x, self.y-1)
+
+    def right(self):
+        return Point(self.x, self.y+1)
+
+MAX = 9999
 
 class Graph():
 
-    def __init__(self, x,y ):
-        self.dim = vertx
-        self.graph = [[0 for column in range(x)] for row in range(y)]
-        self.distance = [sys.maxsize] * self.dim
-        self.parent = [None] * self.dim
+    def __init__(self, x, y ):
+        self.row_nb = x
+        self.col_nb = y
+        self.graph = [[0 for _ in range(y)] for row in range(x)]
+        self.distance = [[MAX for _ in range(y)] for row in range(x)]
+        self.visited = [[False for _ in range(y)] for row in range(x)]
+        self.parent = [[None for _ in range(y)] for row in range(x)]
+
+    def print_visited(self):
+        print('. . 0 1 2 3 4 5 6 7 8')
+        for i, row in enumerate(self.visited):
+            print("{:>2}".format(str(i)), end='') #  "{:>2}"
+            for r in row:
+                if r == True:
+                    print (' X', end = '')
+                else:
+                    print("  ", end = '')
+            print()
+
+    def print_distances(self):
+        print('.  . 0  1  2  3  4  5  6  7  8')
+        for i, row in enumerate(self.distance):
+            print("{:>3}".format(str(i)), end='') #  "{:>2}"
+            for r in row:
+                if r == MAX :
+                    print ('  /', end = '')
+                else:
+                    print("{:>3}".format(str(r)), end='')
+            print()
 
     def pSol(self):
         print("Distance of node from source : ")
@@ -56,36 +93,46 @@ class Graph():
                 print(" Cout total : ", self.distance[dest_node])
         return path
 
-    def node_with_min_distance(self, dist, visited):
-        min = sys.maxsize
-        for v in range(self.dim):
-            if dist[v] < min and not visited[v]:
-                min = dist[v]
-                min_index = v
-        return min_index
+    def node_with_min_distance(self, p):
+        """Doit retourner un point et sa direction
+        Ce point est non déjà décrit. et son accès est le plus faible autres frères."""
+        min = MAX
+        best_index = None
+        best_direction = None
+        print('Point en entrée de sélection', p)
+        neighbors = [[p.top(), 'T'], [p.bottom(), 'B'], [p.left(), 'L'], [p.right(), 'R']]
+        for v, dir in neighbors:
+                if self.distance[v.x][v.y] < min and not self.visited[v.x][v.y]:
+                    min = self.distance[v.x][v.y]
+                    best_index = v
+                    best_direction = dir
 
-    def dijk(self, source):
+        return best_index, best_direction
+
+    def dijkstra(self, source):
         """Calculates all shortest distances from source to any node"""
+        self.distance[source.x][source.y] = 0
+        self.visited[source.x][source.y] = True
 
-        self.distance[source] = 0
-        # initialize list of visited nodes
-        visited = [False] * self.dim
+        # initialize list of self.visited nodes
+        # self.visited = [False] * self.dim
+        u = source
+        for _ in range(20):
+            self.print_visited()
+            self.print_distances()
 
-        for _ in range(self.dim):
-            print("Distances", self.distance)
-            print("Visited", visited)
             print()
-            u = self.node_with_min_distance(self.distance, visited)
+            u, dir = self.node_with_min_distance(u)
             print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
 
-            visited[u] = True
+            self.visited[u.x][u.y] = True
             print(f"Le noeud {u} est marqué comme visité.")
-            print("Visited", visited)
+            print("Visited", self.visited)
             print(f"ligne pour u = {u} vaut : {self.graph[u]}")
 
-            for v in range(self.dim):
+            for v in range(30):
                 print(f"Noeud v {v} , val = {self.graph[u][v]} .", end = '')
-                if not visited[v]:
+                if not self.visited[v]:
                     if self.graph[u][v] > 0:
                         print(f"Valeur possible ? Est-ce que cela vaut le coup d'aller de {u} à {v} ?",
                               f"Alors que nous avons déjà une solution pour aller en {v} par une autre voie ? ")
@@ -103,10 +150,11 @@ class Graph():
                         print("Valeur nulle")
                 else:
                     print("déjà visité")
+            self.print_distances()
         self.pSol()
 
 
-f = Graph(9)
+f = Graph(6, 9)
 # Explication : chaque ligne indique le cout pour passer d'une ligne à la colonne.
 # Un zéro indique qu'on ne peut pas passer.
 
@@ -120,8 +168,10 @@ f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
            [1, 1, 1, 1, 1, 1, 1, 1, 1],
            ]
 
-f.dijk(0)
-
-f.describe(0,8)
+START = Point(1, 1)
+DEST = Point(4, 6)
+f.dijkstra(START)
+#
+# f.describe(0,8)
 # for n in range(0, f.dim):
 #     f.describe(0, n)
