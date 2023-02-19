@@ -142,8 +142,8 @@ class Graph():
             for neighbor, dir in neighbors:
                 print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end = '')
                 if not self.visited[neighbor.x][neighbor.y]:
-                    if self.graph[neighbor.x][neighbor.y] > 0:
-                        print(f"Valeur possible ? Est-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
+                    if self.graph[neighbor.x][neighbor.y] == 0:
+                        print(f"Valeur possible ?\nEst-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
                               f"Alors que nous avons déjà une solution pour aller en {neighbor} par une autre voie ? ")
                         print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
                               f"Cout actuel pour arriver sur {u} : {self.distance[u.x][u.y]}, "
@@ -156,7 +156,9 @@ class Graph():
                         else:
                             print("Trajet non intéressant")
                     else:
-                        print("Valeur nulle")
+                        print("Mur")
+                        self.visited[neighbor.x][neighbor.y] = True
+
                 else:
                     print("déjà visité")
             self.print_distances()
