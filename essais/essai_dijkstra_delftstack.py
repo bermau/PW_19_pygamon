@@ -54,6 +54,7 @@ class Graph():
             if dist[v] < min and not visited[v]:
                 min = dist[v]
                 min_index = v
+        print("node_with_min_distance erenvoie ", min_index)
         return min_index
 
     def dijk(self, source):

@@ -4,6 +4,13 @@
 import sys
 from pprint import pprint
 
+def title(msg):
+    long = len (msg) + 4
+    print("*" * long)
+    print(f"* {msg} *")
+    print("*" * long)
+
+
 class Point:
     def __init__(self, x, y ):
         self.x = x
@@ -96,14 +103,14 @@ class Graph():
     def node_with_min_distance(self, p):
         """Doit retourner un point et sa direction
         Ce point est non déjà décrit. et son accès est le plus faible autres frères."""
-        min = MAX
+        local_min = MAX
         best_index = None
         best_direction = None
         print('Point en entrée de sélection', p)
-        neighbors = [[p.top(), 'T'], [p.bottom(), 'B'], [p.left(), 'L'], [p.right(), 'R']]
+        neighbors = [[p, '0'], [p.top(), 'T'], [p.bottom(), 'B'], [p.left(), 'L'], [p.right(), 'R']]
         for v, dir in neighbors:
-                if self.distance[v.x][v.y] < min and not self.visited[v.x][v.y]:
-                    min = self.distance[v.x][v.y]
+                if self.distance[v.x][v.y] < local_min and not self.visited[v.x][v.y]:
+                    local_min = self.distance[v.x][v.y]
                     best_index = v
                     best_direction = dir
 
@@ -112,23 +119,24 @@ class Graph():
     def dijkstra(self, source):
         """Calculates all shortest distances from source to any node"""
         self.distance[source.x][source.y] = 0
-        self.visited[source.x][source.y] = True
+        self.visited[source.x][source.y] = False
 
-        # initialize list of self.visited nodes
-        # self.visited = [False] * self.dim
         u = source
-        for _ in range(20):
+
+        for passage in range(20):
+
             self.print_visited()
             self.print_distances()
 
-            print()
+            title("Passage " + str(passage))
             u, dir = self.node_with_min_distance(u)
             print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
 
             self.visited[u.x][u.y] = True
             print(f"Le noeud {u} est marqué comme visité.")
-            print("Visited", self.visited)
-            print(f"ligne pour u = {u} vaut : {self.graph[u]}")
+            self.print_visited()
+
+            # print(f"ligne pour u = {u} vaut : {self.graph[u]}")
 
             for v in range(30):
                 print(f"Noeud v {v} , val = {self.graph[u][v]} .", end = '')
