@@ -44,7 +44,7 @@ class Graph():
         self.parent = [[None for _ in range(y)] for row in range(x)]
 
     def print_visited(self):
-        print('. . 0 1 2 3 4 5 6 7 8')
+        print(' . 0 1 2 3 4 5 6 7 8')
         for i, row in enumerate(self.visited):
             print("{:>2}".format(str(i)), end='') #  "{:>2}"
             for r in row:
@@ -55,7 +55,7 @@ class Graph():
             print()
 
     def print_distances(self):
-        print('.  . 0  1  2  3  4  5  6  7  8')
+        print('  .  0  1  2  3  4  5  6  7  8')
         for i, row in enumerate(self.distance):
             print("{:>3}".format(str(i)), end='') #  "{:>2}"
             for r in row:
@@ -137,21 +137,22 @@ class Graph():
             self.print_visited()
 
             # print(f"ligne pour u = {u} vaut : {self.graph[u]}")
+            # On examine ici tous les mouvements possibles depuis v. Soit 4 points
+            neighbors = [[u.top(), 'T'], [u.bottom(), 'B'], [u.left(), 'L'], [u.right(), 'R']]
+            for neighbor, dir in neighbors:
+                print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end = '')
+                if not self.visited[neighbor.x][neighbor.y]:
+                    if self.graph[neighbor.x][neighbor.y] > 0:
+                        print(f"Valeur possible ? Est-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
+                              f"Alors que nous avons déjà une solution pour aller en {neighbor} par une autre voie ? ")
+                        print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
+                              f"Cout actuel pour arriver sur {u} : {self.distance[u.x][u.y]}, "
+                              f"Pour passer de {u} à {neighbor} : {self.graph[u.x][u.y]} ", end = '')
 
-            for v in range(30):
-                print(f"Noeud v {v} , val = {self.graph[u][v]} .", end = '')
-                if not self.visited[v]:
-                    if self.graph[u][v] > 0:
-                        print(f"Valeur possible ? Est-ce que cela vaut le coup d'aller de {u} à {v} ?",
-                              f"Alors que nous avons déjà une solution pour aller en {v} par une autre voie ? ")
-                        print(f"Le cout actuel pour {v} : {self.distance[v]}",
-                              f"Cout actuel pour arriver sur {u} : {self.distance[u]}, "
-                              f"Pour passer de {u} à {v} : {self.graph[u][v]} ", end = '')
-                        if self.distance[v] > self.distance[u] + self.graph[u][v]:
-                            print(f"Valeur retenue ! {self.distance[u] + self.graph[u][v]}")
-                            self.distance[v] = self.distance[u] + self.graph[u][v]
-                            self.parent[v] = u
-                            print(f"distance : {self.distance}")
+                        if self.distance[neighbor.x][neighbor.y] > self.distance[u.x][u.y] + self.graph[neighbor.x][neighbor.y]:
+                            print(f"Valeur retenue ! {self.distance[u.x][u.y]  + self.graph[neighbor.x][neighbor.y]}")
+                            self.distance[neighbor.x][neighbor.y] = self.distance[u.x][u.y]+ self.graph[neighbor.x][neighbor.y]
+                            self.parent[neighbor.x][neighbor.y]= dir
                         else:
                             print("Trajet non intéressant")
                     else:
