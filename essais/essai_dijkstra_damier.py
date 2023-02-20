@@ -134,6 +134,7 @@ class Graph:
         self.visited[source.x][source.y] = False
         u = source
         loop_i = 0
+
         while True:
             loop_i += 1
             for passage in range(20):
@@ -173,14 +174,18 @@ class Graph:
                         print("déjà visité")
                 print("All neighbors visited")
                 self.print_distances()
+
             self.pSol()
 
             # On passe à un autre point aléatoire
             u = self.choose_non_visited_rnd_point()
             print()
-            title("NOUVEAU ALEATOIR " + str(loop_i))
+            title("NOUVEAU TIRAGE ALÉATOIRE " + str(loop_i))
             print ("Nouveau point aléatoire : " , u)
+            title("DISTANCES")
+        title("SUITE... et FIN")
         print(f"Tout semble exploré après {loop_i} passages.")
+        input("Continuer....")
 
 
 f = Graph(6, 9)
@@ -200,6 +205,7 @@ f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
 START = Point(1, 1)
 DEST = Point(4, 6)
 f.dijkstra(START)
+f.describe(START, STOP)
 #
 # f.describe(0,8)
 # for n in range(0, f.dim):
