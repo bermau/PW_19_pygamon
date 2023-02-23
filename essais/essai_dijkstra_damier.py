@@ -78,7 +78,6 @@ class Graph:
         self.print_distances()
 
 
-
     def describe_old(self, source_node, dest_node):
         """Return the shortest path between 2 nodes"""
         node = dest_node
@@ -96,7 +95,7 @@ class Graph:
         print(f"Pour aller du node {source_node} au node {node}")
 
         while node != source_node:
-            path.append(self.parent[node.x][note.y])
+            path.append(self.parent[node.x][node.y])
             node = self.parent[node.x][node.y]
         path.reverse()
         print(path)
@@ -130,6 +129,7 @@ class Graph:
             if not self.visited[p.x][p.y]:
                 break
         return p
+
     def all_points_are_expored(self):
         for i in range(self.row_nb):
             for j in range(self.col_nb):
