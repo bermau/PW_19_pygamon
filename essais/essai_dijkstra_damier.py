@@ -62,18 +62,21 @@ class Graph:
         print('  .  0  1  2  3  4  5  6  7  8')
         for i, row in enumerate(self.distance):
             print("{:>3}".format(str(i)), end='')  # "{:>2}"
-            for r in row:
+            for j, r in enumerate(row):
                 if r == MAX:
-                    print('  /', end='')
+                    if self.graph[i][j] == 1:
+                        print("  |", end='')
+                    else:
+                        print('  ?', end='')
                 else:
                     print("{:>3}".format(str(r)), end='')
             print()
 
+
     def pSol(self):
         print("**** oSol ****")
         self.print_distances()
-        print("Parent of last move :")
-        print(self.parent)
+
 
     def describe_old(self, source_node, dest_node):
         """Return the shortest path between 2 nodes"""
@@ -92,16 +95,16 @@ class Graph:
         print(f"Pour aller du node {source_node} au node {node}")
 
         while node != source_node:
-            path.append(self.parent[node])
-            node = self.parent[node]
+            path.append(self.parent[node.x][node.y])
+            node = self.parent[node.x][node.y]
         path.reverse()
         print(path)
         for point in path:
             print(f"({point})", end='')
             if point != dest_node:
-                print(f" -- {self.graph[point][path[point + 1]]} -> ", end='')
+                print(f" -- {self.graph[point.x][point.y][path[point + 1]]} -> ", end='')
             else:
-                print(" Cout total : ", self.distance[dest_node])
+                print(" Cout total : ", self.distance[dest_node.x][dest_node.y])
         return path
 
     def node_with_min_distance(self, p):
@@ -127,6 +130,13 @@ class Graph:
                 break
         return p
 
+    def all_points_are_expored(self):
+        for i in range(self.row_nb):
+            for j in range(self.col_nb):
+                if not self.visited[i][j] and self.graph[i][j] == 0:
+                    return False
+        return True
+
 
     def dijkstra(self, source):
         """Calculates all shortest distances from source to all nodes."""
@@ -134,12 +144,13 @@ class Graph:
         self.visited[source.x][source.y] = False
         u = source
         loop_i = 0
+
         while True:
             loop_i += 1
-            for passage in range(20):
+            for passage_for_a_rnd_point in range(20):
                 self.print_visited()
                 self.print_distances()
-                title("Passage " + str(passage))
+                title("Passage " + str(passage_for_a_rnd_point))
                 u, dir = self.node_with_min_distance(u) # During first execution, return the source point.
                 if not u:
                     break
@@ -173,14 +184,18 @@ class Graph:
                         print("déjà visité")
                 print("All neighbors visited")
                 self.print_distances()
-            self.pSol()
 
+            self.pSol()
+            print("Fin passage ", loop_i)
             # On passe à un autre point aléatoire
+            if self.all_points_are_expored():
+                break
             u = self.choose_non_visited_rnd_point()
-            print()
-            title("NOUVEAU ALEATOIR " + str(loop_i))
-            print ("Nouveau point aléatoire : " , u)
+
+
+        title("SUITE... et FIN")
         print(f"Tout semble exploré après {loop_i} passages.")
+
 
 
 f = Graph(6, 9)
@@ -200,6 +215,7 @@ f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
 START = Point(1, 1)
 DEST = Point(4, 6)
 f.dijkstra(START)
+f.describe(START, START)
 #
 # f.describe(0,8)
 # for n in range(0, f.dim):
