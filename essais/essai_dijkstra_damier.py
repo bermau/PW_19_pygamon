@@ -3,6 +3,7 @@
 
 from random import randint
 
+
 def title(msg):
     long = len(msg) + 4
     print("*" * long)
@@ -14,6 +15,9 @@ class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
 
     def __str__(self):
         return f"Point ({self.x}, {self.y})"
@@ -72,39 +76,42 @@ class Graph:
                     print("{:>3}".format(str(r)), end='')
             print()
 
-
     def pSol(self):
         print("**** oSol ****")
         self.print_distances()
 
-
-    def describe_old(self, source_node, dest_node):
+    def describe(self, source_node, dest_node, verbose=False):
         """Return the shortest path between 2 nodes"""
         node = dest_node
-        print(f"Pour aller du node {source_node} au node {node}")
-        print(f"il faut passer par {self.parent[node]}")
-        if self.parent[node] == source_node:
-            print("Et vous êtes arrivé.")
-        else:
-            self.describe(source_node, self.parent[node])
-
-    def describe(self, source_node, dest_node):
-        """Return the shortest path between 2 nodes"""
-        node = dest_node
-        path = [node]
-        print(f"Pour aller du node {source_node} au node {node}")
+        path = [dest_node]
 
         while node != source_node:
-            path.append(self.parent[node.x][node.y])
-            node = self.parent[node.x][node.y]
-        path.reverse()
-        print(path)
-        for point in path:
-            print(f"({point})", end='')
-            if point != dest_node:
-                print(f" -- {self.graph[point.x][point.y][path[point + 1]]} -> ", end='')
+            # print(node, source_node)
+            # AA = node == source_node
+            # print(node is source_node, node == source_node, node != source_node)
+            dir_letter = self.parent[node.x][node.y]
+            if dir_letter == 'L':
+                next_point = node.right()
+            elif dir_letter == 'R':
+                next_point = node.left()
+            elif dir_letter == 'T':
+                next_point = node.bottom()
+            elif dir_letter == 'B':
+                next_point = node.top()
             else:
-                print(" Cout total : ", self.distance[dest_node.x][dest_node.y])
+                raise ValueError(f"dir = {dir_letter}")
+            path.append(next_point)
+            node = next_point
+        path.reverse()
+        if verbose:
+            print(f"Pour aller du node {source_node} au node {dest_node}")
+            print(f"Path from {source_node} to {dest_node} is : ")
+            for point in path:
+                print(f"{point}", end='')
+                if point != dest_node:
+                    print(f" -- 1 -> ", end='')
+                else:
+                    print("\nTotal cost : ", self.distance[dest_node.x][dest_node.y])
         return path
 
     def node_with_min_distance(self, p):
@@ -125,7 +132,7 @@ class Graph:
 
     def choose_non_visited_rnd_point(self):
         while True:
-            p = Point(randint(1, self.row_nb -2), randint(1, self.col_nb-2))
+            p = Point(randint(1, self.row_nb - 2), randint(1, self.col_nb - 2))
             if not self.visited[p.x][p.y]:
                 break
         return p
@@ -136,7 +143,6 @@ class Graph:
                 if not self.visited[i][j] and self.graph[i][j] == 0:
                     return False
         return True
-
 
     def dijkstra(self, source):
         """Calculates all shortest distances from source to all nodes."""
@@ -151,7 +157,7 @@ class Graph:
                 self.print_visited()
                 self.print_distances()
                 title("Passage " + str(passage_for_a_rnd_point))
-                u, dir = self.node_with_min_distance(u) # During first execution, return the source point.
+                u, dir = self.node_with_min_distance(u)  # During first execution, return the source point.
                 if not u:
                     break
                 print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
@@ -166,7 +172,8 @@ class Graph:
                     if not self.visited[neighbor.x][neighbor.y]:
                         if self.graph[neighbor.x][neighbor.y] == 0:
                             print(f"Valeur possible ?\nEst-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
-                                  f"Alors que nous avons déjà une solution pour aller en {neighbor} par une autre voie ? ")
+                                  f"Alors que nous avons déjà une solution pour aller en {neighbor} par une autre "
+                                  f"voie ? ")
                             print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
                                   f"Cout actuel pour arriver sur {u} : {self.distance[u.x][u.y]}, "
                                   f"Pour passer de {u} à {neighbor} : 1 ", end='')
@@ -192,10 +199,8 @@ class Graph:
                 break
             u = self.choose_non_visited_rnd_point()
 
-
         title("SUITE... et FIN")
         print(f"Tout semble exploré après {loop_i} passages.")
-
 
 
 f = Graph(6, 9)
@@ -215,8 +220,4 @@ f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
 START = Point(1, 1)
 DEST = Point(4, 6)
 f.dijkstra(START)
-f.describe(START, START)
-#
-# f.describe(0,8)
-# for n in range(0, f.dim):
-#     f.describe(0, n)
+f.describe(START, DEST, verbose=True)
