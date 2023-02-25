@@ -33,7 +33,6 @@ class Entity(pygame.sprite.Sprite):
         # ('up', 'down', 'left', 'right')
         self.image = self.images[attitude]
         self.image.set_colorkey((0, 0, 0))
-        print(f"Changed animation to {attitude}")
 
     def move_right(self):
         self.position[0] += self.speed
