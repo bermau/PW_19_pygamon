@@ -11,7 +11,7 @@ import player
 
 
 def groups_in_list(lst, code='X', blank=' '):
-    """Find a list of continuous signs.
+    """Find a list of continuous signs. This is used to try to reduce memory usage.
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X', ' '))
     [(2, 6), (8, 9)]
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X'))
@@ -133,11 +133,9 @@ class MapManager:
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
 
-        # Définir une liste de collisions et champignons
+        # Définir une liste de collisions
         walls = []
-        #
-        simple_map = []
-        # Je vais ajouter des coins comme des sprites (méthode venant de
+        # Je vais ajouter des pièces/coins en tant que sprites (méthode venant de
         # https://coderslegacy.com/pygame-platformer-coins-and-images/ )
         coins = pygame.sprite.Group()
 
@@ -146,8 +144,6 @@ class MapManager:
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
             elif obj.type == "coin_place":
                 coins.add(Coin((obj.x - 24, obj.y - 24)))  # Valeur mal ajustée
-            elif obj.type == "wall_like":
-                simple_map.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
 
 
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
@@ -176,7 +172,7 @@ class MapManager:
             group.add(npc)
 
         # fabriquer une carte simplifiée de 0 et de 1 pour les walls
-        bool_map = build_map_from_tmx(tmx_data,  simple_map, 1)
+        bool_map = build_map_from_tmx(tmx_data,  walls, 1)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, walls, group, tmx_data, portals, npcs)
@@ -258,21 +254,21 @@ class MapManager:
 def build_map_from_tmx(tmx_data, walls_block_list, node_size=1):
     """Deduce a 2 dimensional array from a tmx map"""
     bin_map = []
-    size = 16
+    size = tmx_data.tilewidth
     map_w = tmx_data.width * size
     map_h = tmx_data.height * size
-    steps = 32
-    for i, y in enumerate(range(0, map_h, steps)):
+    steps = size * 2
+    dec = int(steps/2)
+    for i, y in enumerate(range(0+dec , map_h+dec, steps)):
         line_map = []
         for j, x in enumerate(range(0, map_w, steps)):
             PP = pygame.Rect(x, y, 1, 1)
-            if PP.collidelist(walls_block_list):
+            if PP.collidelist(walls_block_list) != -1 :  # See documentation of colidelist()
                 line_map.append(1)
             else:
                 line_map.append(0)
         bin_map.append(line_map)
     print("Même pas planté !")
-    input("Continuer...")
     pprint(bin_map)
-    print("La carte est ci dessus : ! ")
+    print("La carte est ci-dessus : ! ")
     return (bin_map)
