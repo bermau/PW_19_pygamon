@@ -22,7 +22,7 @@ class Entity(pygame.sprite.Sprite):
             'right': self.get_image(0, 64),
             'up': self.get_image(0, 96)
         }
-        self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
+        self.feet = pygame.Rect(0, 0, self.rect.width*0.5, 16)
         self.old_position = self.position.copy()
         self.speed = 2
 
@@ -86,7 +86,7 @@ class NPC(Entity):
             if rnd != self.current_area_idx:
                 self.next_areas_idx = rnd
                 break
-        print(f"La prochaine cible a un indice de {self.next_areas_idx}")
+        # print(f"La prochaine cible a un indice de {self.next_areas_idx}")
         self.modify_speed()
 
     def modify_speed(self):
@@ -105,7 +105,7 @@ class NPC(Entity):
         rect = pygame.Rect(feet_point[0], feet_point[1],
                            target_point[0] - feet_point[0], target_point[1] - feet_point[1])
         x, y, w, h = rect
-        print("Le rectangle est ", x, y, w, h)
+        # print("Le rectangle est ", x, y, w, h)
         if w > 0:
             if h > 0:
                 self.move_direction = 'SE'
@@ -142,7 +142,7 @@ class NPC(Entity):
         feet_rect = self.feet
         target_rect = self.areas[self.next_areas_idx]
         feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
-                                target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
+                                          target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
         if self.move_direction == 'SE':
             move_horz = self.move_right
             move_vert = self.move_down
@@ -186,12 +186,12 @@ class NPC(Entity):
                     move_horz()
 
         if self.rect.colliderect(target_rect):
-            print(f"NEXT TARGET for {self.name}")
+            # print(f"NEXT TARGET for {self.name}")
             self.current_area_idx = self.next_areas_idx
             self.calculate_next_area_idx()
             self.calculate_move_direction()
 
-    def rectangular_move(self):
+    def rectangular_move_OLD(self):
         """Sera appelé à chaque étape : calcul un mouvement automatique du NPC"""
         # current_idx = self.current_area_idx
         # target_idx = self.next_areas_idx

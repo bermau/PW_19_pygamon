@@ -7,7 +7,6 @@ import pyscroll
 import pytmx
 from random import randint
 from src.player import NPC
-import player
 
 
 def groups_in_list(lst, code='X', blank=' '):
@@ -68,6 +67,7 @@ class Map:
     name: str
     walls: list[pygame.Rect]
     group: pyscroll.PyscrollGroup
+    simple_map: list
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
     npcs: list[NPC]
@@ -145,7 +145,6 @@ class MapManager:
             elif obj.type == "coin_place":
                 coins.add(Coin((obj.x - 24, obj.y - 24)))  # Valeur mal ajustée
 
-
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
         water_blocks = []
         if 'water' in tmx_data.layernames:
@@ -172,10 +171,10 @@ class MapManager:
             group.add(npc)
 
         # fabriquer une carte simplifiée de 0 et de 1 pour les walls
-        bool_map = build_map_from_tmx(tmx_data,  walls, 1)
+        simple_map = build_map_from_tmx(tmx_data, walls, 1)
 
         # Créer un objet Map
-        self.maps[map_name] = Map(map_name, walls, group, tmx_data, portals, npcs)
+        self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
 
     def teleport_npcs(self):
         for map_name in self.maps:
@@ -258,12 +257,12 @@ def build_map_from_tmx(tmx_data, walls_block_list, node_size=1):
     map_w = tmx_data.width * size
     map_h = tmx_data.height * size
     steps = size * 2
-    dec = int(steps/2)
-    for i, y in enumerate(range(0+dec , map_h+dec, steps)):
+    dec = int(steps / 2)
+    for i, y in enumerate(range(0 + dec, map_h + dec, steps)):
         line_map = []
         for j, x in enumerate(range(0, map_w, steps)):
             PP = pygame.Rect(x, y, 1, 1)
-            if PP.collidelist(walls_block_list) != -1 :  # See documentation of colidelist()
+            if PP.collidelist(walls_block_list) != -1:  # See documentation of colidelist()
                 line_map.append(1)
             else:
                 line_map.append(0)
