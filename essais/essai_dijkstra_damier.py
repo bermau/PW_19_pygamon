@@ -80,7 +80,7 @@ class Graph:
         print("**** oSol ****")
         self.print_distances()
 
-    def describe(self, source_node, dest_node, verbose=False):
+    def get_path(self, source_node, dest_node, verbose=False):
         """Return the shortest path between 2 nodes"""
         node = dest_node
         path = [dest_node]
@@ -220,4 +220,4 @@ f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
 START = Point(1, 1)
 DEST = Point(4, 6)
 f.dijkstra(START)
-f.describe(START, DEST, verbose=True)
+f.get_path(START, DEST, verbose=True)

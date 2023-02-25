@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from pprint import pprint
 
 import pygame
 import pyscroll
@@ -10,7 +11,7 @@ import player
 
 
 def groups_in_list(lst, code='X', blank=' '):
-    """Find a list of continuous signs.
+    """Find a list of continuous signs. This is used to try to reduce memory usage.
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X', ' '))
     [(2, 6), (8, 9)]
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X'))
@@ -56,7 +57,7 @@ class Coin(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
-        self.value = Coin.values[randint(0, len(Coin.values)-1)]
+        self.value = Coin.values[randint(0, len(Coin.values) - 1)]
 
     def move_back(self):
         pass
@@ -71,8 +72,10 @@ class Map:
     portals: list[Portal]
     npcs: list[NPC]
 
+
 class MapManager:
     """General manager of all maps"""
+
     def __init__(self, master_game, screen, player):
         """Charge les cartes, puis téléporte le joueur et enfin les NPC"""
         self.master_game = master_game
@@ -88,11 +91,10 @@ class MapManager:
                                           teleport_point="spawn_from_world")],
                           npcs=[
                               # NPC('paul', nb_areas=4),    # en haut
-                                NPC('robin', nb_areas=4, screen=self.screen)  # en bas
-                                ]
+                              NPC('robin', nb_areas=4, screen=self.screen)  # en bas
+                          ]
                           )
-        AA = self.get_objects_regex(map=self.maps['world'], regex = r"paul_path.*")
-        print("Object pour Paul ", AA)
+
         self.register_map('house',
                           portals=[
                               Portal(from_world='house', origin_point='enter_world', target_world='world',
@@ -131,9 +133,9 @@ class MapManager:
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
 
-        # Définir une liste de collisions et champignons
+        # Définir une liste de collisions
         walls = []
-        # Je vais ajouter des coins comme des sprites (méthode venant de
+        # Je vais ajouter des pièces/coins en tant que sprites (méthode venant de
         # https://coderslegacy.com/pygame-platformer-coins-and-images/ )
         coins = pygame.sprite.Group()
 
@@ -142,6 +144,7 @@ class MapManager:
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
             elif obj.type == "coin_place":
                 coins.add(Coin((obj.x - 24, obj.y - 24)))  # Valeur mal ajustée
+
 
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
         water_blocks = []
@@ -161,12 +164,15 @@ class MapManager:
 
         # Dessiner le groupe de calques
         # default_layer à 0 : bonhomme sur herbe, sous chemin
-        group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5) # Pourquoi 5 :
+        group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)  # Pourquoi 5 :
         group.add(self.player)
         # group.add(npcs)
         group.add(coins)
         for npc in npcs:
             group.add(npc)
+
+        # fabriquer une carte simplifiée de 0 et de 1 pour les walls
+        bool_map = build_map_from_tmx(tmx_data,  walls, 1)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, walls, group, tmx_data, portals, npcs)
@@ -221,20 +227,16 @@ class MapManager:
     def get_objects_regex(self, map, regex):
         """Return objects witch name match with a regex"""
         carte = map.tmx_data
-        all_objects= carte.objects
+        all_objects = carte.objects
 
         matching_lst = []
         for tiled_object in all_objects:
             print(tiled_object)
             if re.match(regex, str(tiled_object.name)):
-
                 matching_lst.append(tiled_object)
         print(matching_lst)
 
         return matching_lst
-
-
-        pass
 
     def draw(self):
         self.get_group().draw(self.screen)
@@ -247,3 +249,26 @@ class MapManager:
         # Bouger les NPC
         for npc in self.get_map().npcs:
             npc.move()
+
+
+def build_map_from_tmx(tmx_data, walls_block_list, node_size=1):
+    """Deduce a 2 dimensional array from a tmx map"""
+    bin_map = []
+    size = tmx_data.tilewidth
+    map_w = tmx_data.width * size
+    map_h = tmx_data.height * size
+    steps = size * 2
+    dec = int(steps/2)
+    for i, y in enumerate(range(0+dec , map_h+dec, steps)):
+        line_map = []
+        for j, x in enumerate(range(0, map_w, steps)):
+            PP = pygame.Rect(x, y, 1, 1)
+            if PP.collidelist(walls_block_list) != -1 :  # See documentation of colidelist()
+                line_map.append(1)
+            else:
+                line_map.append(0)
+        bin_map.append(line_map)
+    print("Même pas planté !")
+    pprint(bin_map)
+    print("La carte est ci-dessus : ! ")
+    return (bin_map)
