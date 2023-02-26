@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="12" nextobjectid="84">
+<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="12" nextobjectid="85">
  <tileset firstgid="1" source="tileset_nature.tsx"/>
  <tileset firstgid="721" source="tileset_house.tsx"/>
  <layer id="1" name="background" width="50" height="50" locked="1">
@@ -451,6 +451,7 @@
   <object id="76" name="robin_path1" x="225" y="320.5" width="29.8333" height="32.4167"/>
   <object id="77" name="robin_path2" x="377.167" y="321.167" width="5.83333" height="6.66667"/>
   <object id="78" name="robin_path3" x="554.25" y="505.833" width="32.1667" height="30.8333"/>
-  <object id="79" name="robin_path4" x="224.667" y="392.833" width="6.16667" height="6.83333"/>
+  <object id="79" name="robin_path4" x="151.667" y="390.833" width="20.1667" height="16.8333"/>
+  <object id="84" name="robin_path5" x="351" y="663" width="33" height="20"/>
  </objectgroup>
 </map>

@@ -1,6 +1,6 @@
 import random
-import pygame
 from random import randint
+import pygame
 
 verbose = False
 
@@ -67,17 +67,26 @@ class Player(Entity):
 
 
 class NPC(Entity):
-    def __init__(self, name, nb_areas, screen=None):
+    def __init__(self, name,  map_manager, screen=None):
 
         super().__init__(name, 500, 550, screen)
         self.name = name
         self.change_animation("left")
-        self.nb_areas = nb_areas
+        self.map_manager = map_manager
         self.areas = []  # Les areas : liste de Rect
+        self.nb_areas = 0  # EN PRATIQUE len(self.nb_areas). Est-il intéressant de redéfinir len() ??
 
-        self.current_area_idx = randint(0, self.nb_areas-1)  # index de area
+
+
+        self.current_area_idx = 0  # randint(0, self.nb_areas-1)  # index de area
         self.next_areas_idx = None
         # self.define_first_target()
+
+    def calculate_data(self):
+        pass
+        # self.areas = self.load_areas(self.map_manager)
+        #
+        # self.nb_areas = len(self.areas)
 
     def calculate_next_area_idx(self):
 
@@ -105,7 +114,6 @@ class NPC(Entity):
         rect = pygame.Rect(feet_point[0], feet_point[1],
                            target_point[0] - feet_point[0], target_point[1] - feet_point[1])
         x, y, w, h = rect
-        # print("Le rectangle est ", x, y, w, h)
         if w > 0:
             if h > 0:
                 self.move_direction = 'SE'
@@ -123,21 +131,81 @@ class NPC(Entity):
         self.next_areas_idx = 2
         self.move_direction = 'SE'
 
+    def find_reduced_map_targets(self):
+        pass
+
+    # Attention fonction appelée par map.MapManager...
+    def load_areas(self, maps_manager):
+        """Récupère les objets de la carte qui indiquent la position de passage du NPC, et les transforme en liste de
+        pygame.Rect"""
+        for num in range(1, self.nb_areas + 1):
+            obj = maps_manager.get_object(f'{self.name}_path{num}')
+            rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+            self.areas.append(rect)
+        return
+        self.nb_areas = len(self.areas)   # Cette habitude est sans doute sans intérêt
+
     def teleport_npc(self):
         first_area = self.areas[self.current_area_idx]
         self.position[0] = first_area.x
         self.position[1] = first_area.y
         self.save_location()
 
-    def load_areas(self, maps_manager):
-        """Récupère les objets de la carte qui indiquent la position de passage du NPC, et les transforme en liste de
-        pygame. Rect"""
-        for num in range(1, self.nb_areas + 1):
-            obj = maps_manager.get_object(f'{self.name}_path{num}')
-            rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-            self.areas.append(rect)
-
     def move(self):
+        """Mouvement automatique. Algorithme type Djikstra à ma façon."""
+        feet_rect = self.feet
+        target_rect = self.areas[self.next_areas_idx]
+        feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
+                                          target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
+        if self.move_direction == 'SE':
+            move_horz = self.move_right
+            move_vert = self.move_down
+            self.change_animation("right")
+
+        elif self.move_direction == 'NW':
+            move_horz = self.move_left
+            move_vert = self.move_up
+            self.change_animation("left")
+
+        elif self.move_direction == 'SW':
+            move_horz = self.move_left
+            move_vert = self.move_down
+            self.change_animation("left")
+
+        elif self.move_direction == 'NE':
+            move_horz = self.move_right
+            move_vert = self.move_up
+            self.change_animation("right")
+
+        if feet_to_target_rect.height == 0:
+            feet_to_target_rect.height = 5
+            move_vert()
+        else:
+            # odd n'est sans doute pas le bon terme.
+            try:
+                odd_horiz_mvt = feet_to_target_rect.width / (feet_to_target_rect.height + feet_to_target_rect.width)
+            except ZeroDivisionError:
+                odd_horiz_mvt = 0.95
+
+            if verbose: print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_horiz_mvt}")
+
+            if odd_horiz_mvt == 0:
+                move_vert()
+            else:
+                rnd = random.random()
+                # print(f"La valeur aléatoire est {rnd} ; limite de probabilité vaut {odd_horiz_mvt} : ", end = '')
+                if rnd > odd_horiz_mvt:
+                    move_vert()
+                else:
+                    move_horz()
+
+        if self.rect.colliderect(target_rect):
+            # print(f"NEXT TARGET for {self.name}")
+            self.current_area_idx = self.next_areas_idx
+            self.calculate_next_area_idx()
+            self.calculate_move_direction()
+
+    def move_OLD(self):
         """Mouvement automatique. Algorithme très primaire."""
         feet_rect = self.feet
         target_rect = self.areas[self.next_areas_idx]

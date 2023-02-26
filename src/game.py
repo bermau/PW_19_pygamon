@@ -1,8 +1,8 @@
 import pygame
 
+from src.map import MapManager
 import player
 from player import Player
-from src.map import MapManager
 from counter import Counter
 
 

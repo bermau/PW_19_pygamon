@@ -89,11 +89,11 @@ class MapManager:
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[
-                              # NPC('paul', nb_areas=4),    # en haut
-                              NPC('robin', nb_areas=4, screen=self.screen)  # en bas
-                          ]
-                          )
+                          npcs=[  # NPC('paul', nb_areas=4),    # en haut
+                              NPC('robin', self)  # en bas
+                          ])
+        # AA = self.get_objects_regex(map=self.maps['world'], regex = r"paul_path.*")
+        # print("Object pour Paul ", AA)
 
         self.register_map('house',
                           portals=[
@@ -113,12 +113,6 @@ class MapManager:
 
         self.teleport_player('player')
         self.teleport_npcs()
-
-    def teleport_player(self, player_name):
-        point = self.get_object(player_name)
-        self.player.position[0] = point.x - 16
-        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
-        self.player.save_location()
 
     def register_map(self, map_name, portals=None, npcs=None):
         if npcs is None:
@@ -176,12 +170,20 @@ class MapManager:
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
 
+    def teleport_player(self, player_name):
+        point = self.get_object(player_name)
+        self.player.position[0] = point.x - 16
+        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
+        self.player.save_location()
+
     def teleport_npcs(self):
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.load_areas(self)
-                # npc.calculate_next_area_idx()
+                # npc.load_areas(self)  # IMPORTANT : self = a MapManager instance
+                npc.calculate_data()
+                npc.areas = self.get_objects_regex(map_data, "robin_path\d")
+                npc.nb_areas = len(npc.areas)    # BOUH
                 npc.define_first_target()
                 npc.calculate_move_direction()
                 npc.teleport_npc()
@@ -222,7 +224,7 @@ class MapManager:
         return self.get_map().tmx_data.get_object_by_name(name)
 
     # Le but est de trouver automatiquement le nombre d'objets correspondant à une regex
-    # par exmeple "paul_path\d"
+    # par exemple "paul_path\d"
     def get_objects_regex(self, map, regex):
         """Return objects witch name match with a regex"""
         carte = map.tmx_data
@@ -232,7 +234,8 @@ class MapManager:
         for tiled_object in all_objects:
             print(tiled_object)
             if re.match(regex, str(tiled_object.name)):
-                matching_lst.append(tiled_object)
+                obj = self.get_object(tiled_object.name)
+                matching_lst.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
         print(matching_lst)
 
         return matching_lst
