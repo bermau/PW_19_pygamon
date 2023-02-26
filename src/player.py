@@ -2,7 +2,11 @@ import random
 from random import randint
 import pygame
 
+from essais.essai_dijkstra_damier import title
+from lib_dijkstra import DijkstraManager, Point, area_to_point
+
 verbose = False
+
 
 class Entity(pygame.sprite.Sprite):
 
@@ -22,7 +26,7 @@ class Entity(pygame.sprite.Sprite):
             'right': self.get_image(0, 64),
             'up': self.get_image(0, 96)
         }
-        self.feet = pygame.Rect(0, 0, self.rect.width*0.5, 16)
+        self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.old_position = self.position.copy()
         self.speed = 2
 
@@ -67,39 +71,29 @@ class Player(Entity):
 
 
 class NPC(Entity):
-    def __init__(self, name,  map_manager, screen=None):
+    def __init__(self, name, map_manager, map_name, screen=None):
 
         super().__init__(name, 500, 550, screen)
-        self.name = name
+        self.name = name #
         self.change_animation("left")
         self.map_manager = map_manager
+        self.map_name = map_name
         self.areas = []  # Les areas : liste de Rect
-        self.nb_areas = 0  # EN PRATIQUE len(self.nb_areas). Est-il intéressant de redéfinir len() ??
-
-
-
-        self.current_area_idx = 0  # randint(0, self.nb_areas-1)  # index de area
+        self.nb_areas = None
+        self.current_area_idx = None  #  ndint(0, self.nb_areas-1)  # index de area
         self.next_areas_idx = None
-        # self.define_first_target()
+        self.djikstra = None  # Objet pour résoudre le chemin selon Dijkstra.
 
-    def calculate_data(self):
-        pass
-        # self.areas = self.load_areas(self.map_manager)
-        #
-        # self.nb_areas = len(self.areas)
 
     def calculate_next_area_idx(self):
-
         while True:
-            rnd = randint(0, self.nb_areas-1)
+            rnd = randint(0, self.nb_areas - 1)
             if rnd != self.current_area_idx:
                 self.next_areas_idx = rnd
                 break
-        # print(f"La prochaine cible a un indice de {self.next_areas_idx}")
         self.modify_speed()
 
     def modify_speed(self):
-        # modify speed
         self.speed = self.speed + randint(-1, 1)
         if self.speed == 0:
             self.speed = 1
@@ -107,7 +101,7 @@ class NPC(Entity):
             self.speed = 3
 
     def calculate_move_direction(self):
-        """Mon algorithme est assez primaire. Il a besoin de déterminer la direction générale à prendre."""
+        """Algorithme très primaire. Il a besoin de déterminer la direction générale à prendre."""
         target_point = self.areas[self.next_areas_idx].center
         feet_point = self.feet.center
 
@@ -126,24 +120,33 @@ class NPC(Entity):
                 self.move_direction = 'NW'
         print(f"Nouvelle cible : {self.next_areas_idx}, direction : {self.move_direction}")
 
+    def calculate_dijkstra(self):
+        """Lit la carte simplifiée.
+        L'algorithme utilise une version réduite de la carte. La réduction est de 1 ou 2 fois la taille des
+        tuiles.
+        Convertit une zone (area) en un Point de la carte simplifiée.
+        Donc, on convertit ce que j'appelais area (zone) en Point
+        """
+        map = self.map_manager.maps[self.map_name].simple_map
+        self.dijk = DijkstraManager(map)
+
+        start_area = self.areas[self.current_area_idx]
+        start_point = area_to_point(self.map_manager.maps[self.map_name], start_area, 32)
+
+        next_area = self.areas[self.next_areas_idx]
+        next_point = area_to_point(self.map_manager.maps[self.map_name], next_area, 32)
+        verbose = True
+        if verbose:
+            print(f"Il faut aller du point {start_point} au point {next_point}")
+        #
+        self.dijk.dijkstra(start_point, verbose=0)
+        self.dijk.get_path(start_point, next_point, verbose=True)
+
+
     def define_first_target(self):
         self.current_area_idx = 0  # index de area
         self.next_areas_idx = 2
         self.move_direction = 'SE'
-
-    def find_reduced_map_targets(self):
-        pass
-
-    # Attention fonction appelée par map.MapManager...
-    def load_areas(self, maps_manager):
-        """Récupère les objets de la carte qui indiquent la position de passage du NPC, et les transforme en liste de
-        pygame.Rect"""
-        for num in range(1, self.nb_areas + 1):
-            obj = maps_manager.get_object(f'{self.name}_path{num}')
-            rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-            self.areas.append(rect)
-        return
-        self.nb_areas = len(self.areas)   # Cette habitude est sans doute sans intérêt
 
     def teleport_npc(self):
         first_area = self.areas[self.current_area_idx]
@@ -152,11 +155,14 @@ class NPC(Entity):
         self.save_location()
 
     def move(self):
-        """Mouvement automatique. Algorithme type Djikstra à ma façon."""
+        """Mouvement automatique. Algorithme type Djikstra à ma façon.
+        Cette fonction est en cours d'écriture"""
         feet_rect = self.feet
         target_rect = self.areas[self.next_areas_idx]
         feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
                                           target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
+        move_vert = None
+        move_horz = None
         if self.move_direction == 'SE':
             move_horz = self.move_right
             move_vert = self.move_down
@@ -187,7 +193,8 @@ class NPC(Entity):
             except ZeroDivisionError:
                 odd_horiz_mvt = 0.95
 
-            if verbose: print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_horiz_mvt}")
+            if verbose:
+                print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_horiz_mvt}")
 
             if odd_horiz_mvt == 0:
                 move_vert()
@@ -200,17 +207,21 @@ class NPC(Entity):
                     move_horz()
 
         if self.rect.colliderect(target_rect):
-            # print(f"NEXT TARGET for {self.name}")
             self.current_area_idx = self.next_areas_idx
             self.calculate_next_area_idx()
+            self.calculate_dijkstra()
             self.calculate_move_direction()
+
+
 
     def move_OLD(self):
-        """Mouvement automatique. Algorithme très primaire."""
+        """Mouvement automatique. Algorithme primaire."""
         feet_rect = self.feet
         target_rect = self.areas[self.next_areas_idx]
         feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
                                           target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
+        move_vert = None
+        move_horz = None
         if self.move_direction == 'SE':
             move_horz = self.move_right
             move_vert = self.move_down
@@ -241,7 +252,8 @@ class NPC(Entity):
             except ZeroDivisionError:
                 odd_horiz_mvt = 0.95
 
-            if verbose: print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_horiz_mvt}")
+            if verbose:
+                print(f"{feet_to_target_rect}, {self.name} Odd ratio : {odd_horiz_mvt}")
 
             if odd_horiz_mvt == 0:
                 move_vert()
@@ -254,31 +266,6 @@ class NPC(Entity):
                     move_horz()
 
         if self.rect.colliderect(target_rect):
-            # print(f"NEXT TARGET for {self.name}")
             self.current_area_idx = self.next_areas_idx
             self.calculate_next_area_idx()
             self.calculate_move_direction()
-
-    def rectangular_move_OLD(self):
-        """Sera appelé à chaque étape : calcul un mouvement automatique du NPC"""
-        # current_idx = self.current_area_idx
-        # target_idx = self.next_areas_idx
-
-        current_rect = self.areas[self.current_area_idx]
-        target_rect = self.areas[self.next_areas_idx]
-
-        if current_rect.y < target_rect.y and abs(current_rect.x - target_rect.x) < 3:
-            self.change_animation('down')  # 'up', 'down', 'left', 'right'
-            self.move_down()
-        elif current_rect.y >= target_rect.y and abs(current_rect.x - target_rect.x) < 3:
-            self.change_animation('up')
-            self.move_up()
-        elif current_rect.x < target_rect.x and abs(current_rect.y - target_rect.y) < 3:
-            self.change_animation('right')
-            self.move_right()
-        elif current_rect.x >= target_rect.x and abs(current_rect.y - target_rect.y) < 3:
-            self.change_animation('left')
-            self.move_left()
-
-        if self.rect.colliderect(target_rect):
-            self.calculate_next_area_idx()

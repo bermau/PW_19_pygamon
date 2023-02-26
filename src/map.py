@@ -7,6 +7,9 @@ import pyscroll
 import pytmx
 from random import randint
 from src.player import NPC
+from lib_dijkstra import Point
+
+verbose = False
 
 
 def groups_in_list(lst, code='X', blank=' '):
@@ -48,7 +51,8 @@ class Portal:
 
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
-    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 10, 10, 20, 50)
+    # Intentionally, there are more 1 point coins than 50 points coins.
+    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos):
         super().__init__()
@@ -84,16 +88,13 @@ class MapManager:
         self.player = player
         self.current_map = 'world'
 
-        # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
-        # Attention le from_world doit absolument avoir tous les origine_points.
+        # Dans Portal on indique comment entrer dans un autre monde.
+        # Attention le from_world doit absolument avoir tous les origin_points.
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[  # NPC('paul', nb_areas=4),    # en haut
-                              NPC('robin', self)  # en bas
-                          ])
-        # AA = self.get_objects_regex(map=self.maps['world'], regex = r"paul_path.*")
-        # print("Object pour Paul ", AA)
+                          npcs=[# NPC('paul', nb_areas=4),
+                              NPC('robin', self, 'world')])
 
         self.register_map('house',
                           portals=[
@@ -119,7 +120,8 @@ class MapManager:
             npcs = []
         if portals is None:
             portals = []
-        print("Registering map", map_name)
+        if verbose:
+            print("Registering map", map_name)
 
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
@@ -165,7 +167,7 @@ class MapManager:
             group.add(npc)
 
         # fabriquer une carte simplifiée de 0 et de 1 pour les walls
-        simple_map = build_map_from_tmx(tmx_data, walls, 1)
+        simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
@@ -180,12 +182,11 @@ class MapManager:
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                # npc.load_areas(self)  # IMPORTANT : self = a MapManager instance
-                npc.calculate_data()
-                npc.areas = self.get_objects_regex(map_data, "robin_path\d")
-                npc.nb_areas = len(npc.areas)    # BOUH
+                npc.areas = self.get_objects_regex(map_data, r"robin_path\d")
+                npc.nb_areas = len(npc.areas)  # BOUH
                 npc.define_first_target()
                 npc.calculate_move_direction()
+                npc.calculate_dijkstra()
                 npc.teleport_npc()
 
     def check_collision(self):
@@ -207,7 +208,8 @@ class MapManager:
                 my_sprite.move_back()
             if isinstance(my_sprite, Coin):
                 if self.player.feet.colliderect(my_sprite):
-                    print(f"Miam ! {my_sprite.value} points !!")
+                    if verbose:
+                        print(f"Miam ! {my_sprite.value} points !!")
                     self.master_game.point_counter.points += my_sprite.value
                     my_sprite.kill()
 
@@ -232,12 +234,9 @@ class MapManager:
 
         matching_lst = []
         for tiled_object in all_objects:
-            print(tiled_object)
             if re.match(regex, str(tiled_object.name)):
                 obj = self.get_object(tiled_object.name)
                 matching_lst.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-        print(matching_lst)
-
         return matching_lst
 
     def draw(self):
@@ -253,14 +252,14 @@ class MapManager:
             npc.move()
 
 
-def build_map_from_tmx(tmx_data, walls_block_list, node_size=1):
+def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
     """Deduce a 2 dimensional array from a tmx map"""
     bin_map = []
     size = tmx_data.tilewidth
     map_w = tmx_data.width * size
     map_h = tmx_data.height * size
-    steps = size * 2
-    dec = int(steps / 2)
+    steps = size * reduction_factor
+    dec = int(steps / reduction_factor)
     for i, y in enumerate(range(0 + dec, map_h + dec, steps)):
         line_map = []
         for j, x in enumerate(range(0, map_w, steps)):
@@ -270,7 +269,11 @@ def build_map_from_tmx(tmx_data, walls_block_list, node_size=1):
             else:
                 line_map.append(0)
         bin_map.append(line_map)
-    print("Même pas planté !")
-    pprint(bin_map)
-    print("La carte est ci-dessus : ! ")
+    if verbose:
+        print("Même pas planté !")
+        pprint(bin_map)
+        print("La carte est ci-dessus : ! ")
     return (bin_map)
+
+
+
