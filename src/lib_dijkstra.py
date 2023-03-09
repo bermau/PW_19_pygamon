@@ -2,6 +2,8 @@
 
 from random import randint
 
+import pygame
+
 
 class Point:
     def __init__(self, x, y):
@@ -38,9 +40,10 @@ class DijkstraManager:
         self.graph = graph
         self.row_nb = len(graph)
         self.col_nb = len(graph[0])
-        self.distance = [[MAX for _ in range(self.col_nb)] for _ in range(self.row_nb)]
         self.visited = [[False for _ in range(self.col_nb)] for _ in range(self.row_nb)]
+        self.distance = [[MAX for _ in range(self.col_nb)] for _ in range(self.row_nb)]
         self.parent = [[None for _ in range(self.col_nb)] for _ in range(self.row_nb)]
+        self.path = None    # Solution
 
     def print_header(self, n):
         """
@@ -91,10 +94,10 @@ class DijkstraManager:
         print("**** oSol ****")
         self.print_distances()
 
-    def get_path(self, source_node, dest_node, verbose=False):
+    def format_path(self, source_node, dest_node, verbose=False):
         """Return the shortest path between 2 nodes"""
         node = dest_node
-        path = [dest_node]
+        path = []
 
         while node != source_node:
             dir_letter = self.parent[node.x][node.y]
@@ -108,19 +111,30 @@ class DijkstraManager:
                 next_point = node.top()
             else:
                 raise ValueError(f"dir = {dir_letter}")
-            path.append(next_point)
+            path.append((node, dir_letter))
             node = next_point
-        path.reverse()
+        path.append((node, None))
+
+        verbose = True
         if verbose:
             print(f"Pour aller du node {source_node} au node {dest_node}")
             print(f"Path from {source_node} to {dest_node} is : ")
-            for point in path:
-                print(f"{point}", end='')
-                if point != dest_node:
-                    print(f" -- 1 -> ", end='')
+            for point, dir in path:
+                print(f"{point} ({dir}) ", end='')
+                if point != source_node:
+                    print(f" <--- ", end='')
                 else:
                     print("\nTotal cost : ", self.distance[dest_node.x][dest_node.y])
-        return path
+        self.path = path
+        print(self.path)
+
+    def give_next_instruction(self):
+        if self.path:
+            return self.path.pop() # Renvoie Point et direction
+        else:
+            input("VA PLANTER")
+            pass
+            return (None, None)
 
     def node_with_min_distance(self, p):
         """Doit retourner un point et sa direction
@@ -147,7 +161,7 @@ class DijkstraManager:
                 break
         return p
 
-    def all_points_are_expored(self):
+    def all_points_are_explored(self):
         for i in range(self.row_nb):
             for j in range(self.col_nb):
                 if not self.visited[i][j] and self.graph[i][j] == 0:
@@ -214,21 +228,28 @@ class DijkstraManager:
             if verbose:
                 print("Fin passage ", loop_i)
             # On passe à un autre point aléatoire
-            if self.all_points_are_expored() or loop_i > 300:
+            if self.all_points_are_explored() or loop_i > 300:
                 break
             u = self.choose_non_visited_rnd_point()
 
         print(f"Tout semble exploré après {loop_i} passages.")
+        self.print_distances()
 
 
-def area_to_point(tmx_data, area, reduction_factor):
+def pyrect_to_point(tmx_data, area, reduction_factor):
     # area is a Pygame.rect
     # Attention : le Point et area n'ont pas le même sens d'orientation :
+    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
     area_center = area.center   # (x : décalage vers droite
                                 #  , y : décalage vers bas)
     # Point a une orientation de type Numpy, Pandas, etc.
     tile_size = reduction_factor
     return Point(area_center[1]//tile_size, area_center[0]// tile_size)
+
+def point_to_pyrect(tmx_data, point: Point, reduction_factor = 32):
+    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    tile_size = reduction_factor
+    return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
 
 if __name__ == '__main__':
     # Explication : chaque ligne indique le cout pour passer d'une ligne à la colonne.
@@ -246,4 +267,5 @@ if __name__ == '__main__':
     START = Point(1, 1)
     DEST = Point(4, 6)
     f.dijkstra(START, verbose = 1)
-    f.get_path(START, DEST, verbose=True)
+    f.format_path(START, DEST, verbose=True)
+    pass

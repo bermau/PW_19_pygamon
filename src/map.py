@@ -182,12 +182,13 @@ class MapManager:
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.areas = self.get_objects_regex(map_data, r"robin_path\d")
-                npc.nb_areas = len(npc.areas)  # BOUH
+                npc.pyrect_areas = self.get_objects_regex(map_data, r"robin_path\d")
+                npc.nb_target_pyrect = len(npc.pyrect_areas)  # BOUH
                 npc.define_first_target()
                 npc.calculate_move_direction()
                 npc.calculate_dijkstra()
                 npc.teleport_npc()
+                pass
 
     def check_collision(self):
         # portals
