@@ -5,12 +5,12 @@ from pprint import pprint
 import pygame
 import pyscroll
 import pytmx
-from random import randint
-from src.player import NPC
+from random import randint, seed
+from src.player import NPC, Player
 from lib_dijkstra import Point
 
 verbose = False
-
+# seed(1)
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -182,8 +182,8 @@ class MapManager:
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.pyrect_areas = self.get_objects_regex(map_data, r"robin_path\d")
-                npc.nb_target_pyrect = len(npc.pyrect_areas)  # BOUH
+                npc.areas = self.get_object_by_regex(map_data, r"robin_path\d")
+                npc.areas_nb = len(npc.areas)  # BOUH
                 npc.define_first_target()
                 npc.calculate_move_direction()
                 npc.calculate_dijkstra()
@@ -205,8 +205,10 @@ class MapManager:
 
         # collisions, coins
         for my_sprite in self.get_group().sprites():
-            if my_sprite.feet.collidelist(self.get_walls()) > -1:
-                my_sprite.move_back()
+            # fix BUG_SAUT : Ne reculer que si le sprite est un Player, pas un NPC
+            if isinstance(my_sprite, Player):
+                if my_sprite.feet.collidelist(self.get_walls()) > -1:
+                    my_sprite.move_back()
             if isinstance(my_sprite, Coin):
                 if self.player.feet.colliderect(my_sprite):
                     if verbose:
@@ -226,9 +228,9 @@ class MapManager:
     def get_object(self, name):
         return self.get_map().tmx_data.get_object_by_name(name)
 
-    # Le but est de trouver automatiquement le nombre d'objets correspondant à une regex
+    # trouver automatiquement le nombre d'objets correspondant à une regex
     # par exemple "paul_path\d"
-    def get_objects_regex(self, map, regex):
+    def get_object_by_regex(self, map, regex):
         """Return objects witch name match with a regex"""
         carte = map.tmx_data
         all_objects = carte.objects
@@ -240,10 +242,6 @@ class MapManager:
                 matching_lst.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
         return matching_lst
 
-    def draw(self):
-        self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)
-
     def update(self):
         """Fonction pour toutes les maps, appelée à chaque image"""
         self.get_group().update()
@@ -251,6 +249,10 @@ class MapManager:
         # Bouger les NPC
         for npc in self.get_map().npcs:
             npc.move()
+
+    def draw(self):
+        self.get_group().draw(self.screen)
+        self.get_group().center(self.player.rect.center)
 
 
 def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):

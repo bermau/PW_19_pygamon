@@ -80,28 +80,29 @@ class NPC(Entity):
         self.map_name = map_name
         self.debug_count =0
 
-        # Les zone issues de la carte tmx
-        self.pyrect_areas = []  # Les areas : liste de Rect
-        self.nb_target_pyrect = None
-        self.current_pyrect_idx = None  # ndint(0, self.nb_areas-1)  # index de area
-        self.next_pyrect_idx = None
+        # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
+        # J'appelle cette zone une area. Elle est de type pygame.Rect
+        self.areas = []  # Les areas : liste de pygame.Rect
+        self.areas_nb = None
+        self.current_area_idx = None  # ndint(0, self.nb_areas-1)  # index de area
+        self.next_area_idx = None
 
         # les points de la carte simplifiée
         self.use_dijkstra = True
         self.djik = None  # Objet pour résoudre le chemin selon Dijkstra.
-        # self.origin_point = None  # Le Point d'où vient
         self.prev_point = None  # Le Point d'où lon vient. Sera initialisé par init_dijkstra
         self.next_point = None  # Le Point où l'on va
         self.next_point_rect: pygame.Rect = None  # Son équivalent en pygame.rect
         self.next_dir = None
-        # Il faut penser à lancer les intructions suivantes
+        # Il faut penser à lancer les méthodes de début après création de NPC:
+        # par exemple define_first_target()
 
 
     def calculate_next_area_idx(self):
         while True:
-            rnd = randint(0, self.nb_target_pyrect - 1)
-            if rnd != self.current_pyrect_idx:
-                self.next_pyrect_idx = rnd
+            rnd = randint(0, self.areas_nb - 1)
+            if rnd != self.current_area_idx:
+                self.next_area_idx = rnd
                 break
 
     def modify_speed(self):
@@ -113,7 +114,7 @@ class NPC(Entity):
 
     def calculate_move_direction(self):
         """Algorithme très primaire. Il a besoin de déterminer la direction générale à prendre."""
-        target_point = self.pyrect_areas[self.next_pyrect_idx].center
+        target_point = self.areas[self.next_area_idx].center
         feet_point = self.feet.center
 
         rect = pygame.Rect(feet_point[0], feet_point[1],
@@ -129,7 +130,7 @@ class NPC(Entity):
                 self.move_direction = 'SW'
             else:
                 self.move_direction = 'NW'
-        print(f"Nouvelle cible : {self.next_pyrect_idx}, direction : {self.move_direction}")
+        print(f"Nouvelle cible : {self.next_area_idx}, direction : {self.move_direction}")
 
     def calculate_dijkstra(self):
         """Lit la carte simplifiée.
@@ -141,10 +142,10 @@ class NPC(Entity):
         map = self.map_manager.maps[self.map_name].simple_map
         self.dijk = DijkstraManager(map)
 
-        start_area = self.pyrect_areas[self.current_pyrect_idx]
+        start_area = self.areas[self.current_area_idx]
         start_point = pyrect_to_point(self.map_manager.maps[self.map_name], start_area, 32)
 
-        next_area = self.pyrect_areas[self.next_pyrect_idx]
+        next_area = self.areas[self.next_area_idx]
         map_name = self.map_manager.maps[self.map_name]
         next_point = pyrect_to_point(map_name, next_area, 32)
         verbose = True
@@ -162,19 +163,22 @@ class NPC(Entity):
         print(f"{self.next_dir} point_actuel: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
 
     def define_first_target(self):
-        self.current_pyrect_idx = 0  # index de area
-        # self.calculate_next_area_idx()
+        self.current_area_idx = 0  # index de area
+        # Pour le run, utiliser ces lignes
+        self.calculate_next_area_idx()
         # self.calculate_move_direction()
-        self.next_pyrect_idx = 2
-        self.move_direction = 'SE'
+        # Pour une mise au point, utiliser ces lignes
+        # self.next_pyrect_idx = 2
+        # self.move_direction = 'SE'
 
     def teleport_npc(self):
-        first_area = self.pyrect_areas[self.current_pyrect_idx]
+        first_area = self.areas[self.current_area_idx]
         self.position[0] = first_area.x
         self.position[1] = first_area.y
         self.save_location()
 
     def move(self):
+        self.save_location()  # Tentative de résolution d'un GROS BUG
         self.debug_count += 1
         if self.use_dijkstra:
             self.move_dij()
@@ -193,6 +197,8 @@ class NPC(Entity):
             self.move_down()
         elif sens == 'T':
             self.move_up()
+        elif sens is None:
+            pass
         else:
             raise ValueError(f"{sens} : error code letter")
 
@@ -203,10 +209,12 @@ class NPC(Entity):
             if self.next_point:
                 self.next_point_rect = pygame.Rect(point_to_pyrect(self.map_name, self.next_point))
             else:
-                print("Arrivé ! ")
+                print("********** Arrivé ! ************")
+                # Trouver une nouvelle cible au NPC
+                self.calculate_next_area_idx()
 
-        else:
-            print("pas collision")
+
+
         print(f"{self.debug_count}, {sens} actuel : point_actuel: {self.prev_point} rect: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
         print(f"next_dir devient {self.next_dir}")
         pass
@@ -214,7 +222,7 @@ class NPC(Entity):
     def move_classical(self):
         """Mouvement automatique. Algorithme primaire."""
         feet_rect = self.feet
-        target_rect = self.pyrect_areas[self.next_pyrect_idx]
+        target_rect = self.areas[self.next_area_idx]
         feet_to_target_rect = pygame.Rect(feet_rect.x, feet_rect.y,
                                           target_rect.x - feet_rect.x, target_rect.y - feet_rect.y)
         move_vert = None
@@ -263,6 +271,6 @@ class NPC(Entity):
                     move_horz()
 
         if self.rect.colliderect(target_rect):
-            self.current_pyrect_idx = self.next_pyrect_idx
+            self.current_area_idx = self.next_area_idx
             self.calculate_next_area_idx()
             self.calculate_move_direction()

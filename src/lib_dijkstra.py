@@ -132,8 +132,6 @@ class DijkstraManager:
         if self.path:
             return self.path.pop() # Renvoie Point et direction
         else:
-            input("VA PLANTER")
-            pass
             return (None, None)
 
     def node_with_min_distance(self, p):
