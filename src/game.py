@@ -4,6 +4,7 @@ from src.map import MapManager
 import player
 from player import Player
 from counter import Counter
+from lib_drawing_tools import MyRect
 
 
 class Game:
@@ -20,6 +21,8 @@ class Game:
         self.map_manager = MapManager(self, self.screen, self.player)
         # Un compteur
         self.point_counter = Counter()
+        # Une zone à encadrer pour debugger
+        self.indicator = MyRect()
 
     def handle_input(self):
         pressed = pygame.key.get_pressed()
@@ -51,6 +54,7 @@ class Game:
             self.map_manager.update()
             self.map_manager.draw()
             self.point_counter.render(self.screen)
+            self.indicator.render(self.screen)
 
             pygame.display.flip()
 
