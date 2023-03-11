@@ -2,6 +2,8 @@
 
 import pygame
 
+display = False
+
 class DebugRect():
     def __init__(self, color, pygame_rect, l_width):
 
@@ -10,5 +12,6 @@ class DebugRect():
         self.l_width = l_width
 
     def render(self, screen):
-        pass
-        pygame.draw.rect(screen, self.color, self.zone, self.l_width)
+
+        if display:
+            pygame.draw.rect(screen, self.color, self.zone, self.l_width)
