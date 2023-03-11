@@ -9,7 +9,6 @@ import lib_drawing_tools
 
 lib_drawing_tools.display = True
 
-
 class Game:
     def __init__(self):
         pygame.init()

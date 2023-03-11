@@ -4,6 +4,7 @@ import pygame
 
 from essais.essai_dijkstra_damier import title
 from lib_dijkstra import DijkstraManager, Point, pyrect_to_point, point_to_pyrect
+from src.lib_drawing_tools import DebugRect
 
 verbose = False
 
@@ -79,8 +80,9 @@ class NPC(Entity):
         self.change_animation("left")
         self.map_manager = map_manager
         self.map_name = map_name
-        self.debug_count =0
+        self.debug_count = 0
         self.move_direction = None
+        self.indic = []  # Liste d'indicateurs de débogage
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
         # J'appelle cette zone une area. Elle est de type pygame.Rect
@@ -88,7 +90,7 @@ class NPC(Entity):
         self.areas_nb = None
         self.current_area_idx = None  # ndint(0, self.nb_areas-1)  # index de area
         self.next_area_idx = None
-        
+
         # Entre 2 zones, on définit une promenade / walk. Le chemin de la promenade est trouvé selon un algorithme 
         # simple ou un algorithme de Dijkstra.
         self.use_dijkstra = True
@@ -102,7 +104,6 @@ class NPC(Entity):
         self.next_dir = None
         # Il faut penser à lancer les méthodes de début après création de NPC:
         # par exemple define_first_target()
-
 
     def calculate_next_area_idx(self):
         while True:
@@ -162,7 +163,7 @@ class NPC(Entity):
         self.dijk.format_path(start_point, end_point, verbose=True)
 
         self.prev_point = start_point
-        self.dijk.give_next_instruction()    # IMPORTANT : on élimine la dernière valeur
+        self.dijk.give_next_instruction()  # IMPORTANT : on élimine la dernière valeur
         self.next_point, self.next_dir = self.dijk.give_next_instruction()
         self.next_point_rect = pygame.Rect(point_to_pyrect(map_name, self.next_point))
         print("Fin de calcul du Dijkstra")
@@ -281,3 +282,7 @@ class NPC(Entity):
             self.current_area_idx = self.next_area_idx
             self.calculate_next_area_idx()
             self.calculate_move_direction()
+
+    def add_indic(self, *rectpy):
+        print(f"Passe ici : ")
+        self.indic.append(DebugRect(*rectpy))

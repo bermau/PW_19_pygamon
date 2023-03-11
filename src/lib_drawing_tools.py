@@ -2,7 +2,7 @@
 
 import pygame
 
-display = False
+display = True
 
 class DebugRect():
     def __init__(self, color, pygame_rect, l_width):
