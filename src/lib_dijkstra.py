@@ -2,6 +2,8 @@
 
 from random import randint
 
+import pygame
+
 
 class Point:
     def __init__(self, x, y):
@@ -31,18 +33,40 @@ class Point:
 
 MAX = 9999
 
-class Graph:
+class DijkstraManager:
 
-    def __init__(self, x, y):
-        self.row_nb = x
-        self.col_nb = y
-        self.graph = [[0 for _ in range(y)] for _ in range(x)]
-        self.distance = [[MAX for _ in range(y)] for _ in range(x)]
-        self.visited = [[False for _ in range(y)] for _ in range(x)]
-        self.parent = [[None for _ in range(y)] for _ in range(x)]
+    def __init__(self, graph):
+
+        self.graph = graph
+        self.row_nb = len(graph)
+        self.col_nb = len(graph[0])
+        self.visited = [[False for _ in range(self.col_nb)] for _ in range(self.row_nb)]
+        self.distance = [[MAX for _ in range(self.col_nb)] for _ in range(self.row_nb)]
+        self.parent = [[None for _ in range(self.col_nb)] for _ in range(self.row_nb)]
+        self.path = None    # Solution
+
+    def print_header(self, n):
+        """
+        Prints the header of a table with a specified number of columns.
+
+        Args:
+            n (int): The number of spaces to print before the first column.
+
+        Returns:
+            None
+
+        Example:
+            If self.col_nb == 3 and n == 2, this function would print:
+            "  .  0  1  2"
+        """
+        print(' '*(n-1) + '.', end='')
+        nb_format = "{: "+str(n)+"d}"
+        for i in range(self.col_nb):
+            print(nb_format.format(i), end='')
+        print()
 
     def print_visited(self):
-        print(' . 0 1 2 3 4 5 6 7 8')
+        self.print_header(2)
         for i, row in enumerate(self.visited):
             print("{:>2}".format(str(i)), end='')  # "{:>2}"
             for r in row:
@@ -53,9 +77,9 @@ class Graph:
             print()
 
     def print_distances(self):
-        print('  .  0  1  2  3  4  5  6  7  8')
+        self.print_header(3)
         for i, row in enumerate(self.distance):
-            print("{:>3}".format(str(i)), end='')  # "{:>2}"
+            print("{:>3}".format(str(i)), end='')
             for j, r in enumerate(row):
                 if r == MAX:
                     if self.graph[i][j] == 1:
@@ -70,15 +94,12 @@ class Graph:
         print("**** oSol ****")
         self.print_distances()
 
-    def get_path(self, source_node, dest_node, verbose=False):
+    def format_path(self, source_node, dest_node, verbose=False):
         """Return the shortest path between 2 nodes"""
         node = dest_node
-        path = [dest_node]
+        path = []
 
         while node != source_node:
-            # print(node, source_node)
-            # AA = node == source_node
-            # print(node is source_node, node == source_node, node != source_node)
             dir_letter = self.parent[node.x][node.y]
             if dir_letter == 'L':
                 next_point = node.right()
@@ -90,27 +111,38 @@ class Graph:
                 next_point = node.top()
             else:
                 raise ValueError(f"dir = {dir_letter}")
-            path.append(next_point)
+            path.append((node, dir_letter))
             node = next_point
-        path.reverse()
+        path.append((node, None))
+
+        verbose = True
         if verbose:
             print(f"Pour aller du node {source_node} au node {dest_node}")
             print(f"Path from {source_node} to {dest_node} is : ")
-            for point in path:
-                print(f"{point}", end='')
-                if point != dest_node:
-                    print(f" -- 1 -> ", end='')
+            for point, dir in path:
+                print(f"{point} ({dir}) ", end='')
+                if point != source_node:
+                    print(f" <--- ", end='')
                 else:
                     print("\nTotal cost : ", self.distance[dest_node.x][dest_node.y])
-        return path
+        self.path = path
+        print(self.path)
+
+    def give_next_instruction(self):
+        if self.path:
+            return self.path.pop() # Renvoie Point et direction
+        else:
+            return (None, None)
 
     def node_with_min_distance(self, p):
         """Doit retourner un point et sa direction
         Ce point est non déjà décrit. et son accès est le plus faible autres frères."""
+        verbose = False
         local_min = MAX
         best_index = None
         best_direction = None
-        print('Point en entrée de sélection', p)
+        if verbose:
+            print('Point en entrée de sélection', p)
         neighbors = [[p, '0'], [p.top(), 'T'], [p.bottom(), 'B'], [p.left(), 'L'], [p.right(), 'R']]
         for v, dir in neighbors:
             if self.distance[v.x][v.y] < local_min and not self.visited[v.x][v.y]:
@@ -127,15 +159,16 @@ class Graph:
                 break
         return p
 
-    def all_points_are_expored(self):
+    def all_points_are_explored(self):
         for i in range(self.row_nb):
             for j in range(self.col_nb):
                 if not self.visited[i][j] and self.graph[i][j] == 0:
                     return False
         return True
 
-    def dijkstra(self, source):
+    def dijkstra(self, source, verbose = 0):
         """Calculates all shortest distances from source to all nodes."""
+
         self.distance[source.x][source.y] = 0
         self.visited[source.x][source.y] = False
         u = source
@@ -144,18 +177,22 @@ class Graph:
         while True:
             loop_i += 1
             for passage_for_a_rnd_point in range(20):
-                self.print_visited()
-                self.print_distances()
+                if verbose >= 2:
+                    self.print_visited()
+                if verbose >= 1:
+                    self.print_distances()
 
                 u, dir = self.node_with_min_distance(u)  # During first execution, return the source point.
                 if not u:
                     break
-                print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
+                if verbose:
+                    print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
                 self.visited[u.x][u.y] = True
-                print(f"Le noeud {u} est marqué comme visité.")
+                if verbose:
+                    print(f"Le noeud {u} est marqué comme visité.")
                 self.print_visited()
-                # print(f"ligne pour u = {u} vaut : {self.graph[u]}")
-                # On examine ici tous les mouvements possibles depuis v. Soit 4 points
+                #  print(f"ligne pour u = {u} vaut : {self.graph[u]}")
+                # On examine ici tous les mouvements possibles depuis v. Soit 4 points.
                 neighbors = [[u.top(), 'T'], [u.bottom(), 'B'], [u.left(), 'L'], [u.right(), 'R']]
                 for neighbor, dir in neighbors:
                     print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end='')
@@ -173,41 +210,60 @@ class Graph:
                                 self.distance[neighbor.x][neighbor.y] = self.distance[u.x][u.y] + 1
                                 self.parent[neighbor.x][neighbor.y] = dir
                             else:
-                                print("Trajet plus coûteux donc non intéressant")
+                                if verbose:
+                                    print("Trajet plus coûteux donc non intéressant")
                         else:
-                            print("Mur")
+                            if verbose:
+                                print("Mur")
                             self.visited[neighbor.x][neighbor.y] = True
                     else:
                         print("déjà visité")
                 print("All neighbors visited")
-                self.print_distances()
+                if verbose >=1:
+                    self.print_distances()
 
-            self.pSol()
-            print("Fin passage ", loop_i)
+            # self.pSol()
+            if verbose:
+                print("Fin passage ", loop_i)
             # On passe à un autre point aléatoire
-            if self.all_points_are_expored():
+            if self.all_points_are_explored() or loop_i > 300:
                 break
             u = self.choose_non_visited_rnd_point()
 
-
         print(f"Tout semble exploré après {loop_i} passages.")
+        self.print_distances()
 
+
+def pyrect_to_point(tmx_data, area, reduction_factor):
+    # area is a Pygame.rect
+    # Attention : le Point et area n'ont pas le même sens d'orientation :
+    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    area_center = area.center   # (x : décalage vers droite
+                                #  , y : décalage vers bas)
+    # Point a une orientation de type Numpy, Pandas, etc.
+    tile_size = reduction_factor
+    return Point(area_center[1]//tile_size, area_center[0]// tile_size)
+
+def point_to_pyrect(tmx_data, point: Point, reduction_factor = 32):
+    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    tile_size = reduction_factor
+    return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
 
 if __name__ == '__main__':
-
-    f = Graph(6, 9)
     # Explication : chaque ligne indique le cout pour passer d'une ligne à la colonne.
     # Un zéro indique qu'on ne peut pas passer. Dans cette structure le coût est toujours constant.
 
-    f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
-               [1, 0, 0, 1, 0, 0, 1, 0, 1],
-               [1, 1, 0, 1, 0, 0, 0, 0, 1],
-               [1, 0, 0, 0, 0, 1, 0, 0, 1],
-               [1, 0, 0, 1, 0, 1, 0, 0, 1],
-               [1, 1, 1, 1, 1, 1, 1, 1, 1],
-               ]
+    graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+             [1, 0, 0, 1, 0, 0, 1, 0, 1],
+             [1, 1, 0, 1, 0, 0, 0, 0, 1],
+             [1, 0, 0, 0, 0, 1, 0, 0, 1],
+             [1, 0, 0, 1, 0, 1, 0, 0, 1],
+             [1, 1, 1, 1, 1, 1, 1, 1, 1],
+             ]
+    f = DijkstraManager(graph)
 
     START = Point(1, 1)
     DEST = Point(4, 6)
-    f.dijkstra(START)
-    f.get_path(START, DEST, verbose=True)
+    f.dijkstra(START, verbose = 1)
+    f.format_path(START, DEST, verbose=True)
+    pass

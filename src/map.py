@@ -5,11 +5,14 @@ from pprint import pprint
 import pygame
 import pyscroll
 import pytmx
-from random import randint
-from src.player import NPC
+from random import randint, seed
+
+from src import player
+from src.player import NPC, Player
+from lib_dijkstra import Point
 
 verbose = False
-
+# seed(1)
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -50,10 +53,12 @@ class Portal:
 
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
-    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 10, 10, 20, 50)
+    # Intentionally, there are more 1 point coins than 50 points coins.
+    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos):
         super().__init__()
+        self.name = 'coin'
         self.image = pygame.image.load("../map/coin.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -86,14 +91,13 @@ class MapManager:
         self.player = player
         self.current_map = 'world'
 
-        # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
-        # Attention le from_world doit absolument avoir tous les origine_points.
+        # Dans Portal on indique comment entrer dans un autre monde.
+        # Attention le from_world doit absolument avoir tous les origin_points.
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[  # NPC('paul', nb_areas=4),    # en haut
-                              NPC('robin', self)  # en bas
-                          ])
+                          npcs=[# NPC('paul', nb_areas=4),
+                              NPC('robin', self, 'world')])
 
         self.register_map('house',
                           portals=[
@@ -166,7 +170,7 @@ class MapManager:
             group.add(npc)
 
         # fabriquer une carte simplifiée de 0 et de 1 pour les walls
-        simple_map = build_map_from_tmx(tmx_data, walls, reduction_factor=2)
+        simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
@@ -181,11 +185,13 @@ class MapManager:
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.areas = self.get_objects_regex(map_data, r"robin_path\d")
-                npc.nb_areas = len(npc.areas)  # BOUH
+                npc.areas = self.get_object_by_regex(map_data, r"robin_path\d")
+                npc.areas_nb = len(npc.areas)  # BOUH
                 npc.define_first_target()
                 npc.calculate_move_direction()
+                npc.calculate_dijkstra()
                 npc.teleport_npc()
+                pass
 
     def check_collision(self):
         # portals
@@ -202,8 +208,11 @@ class MapManager:
 
         # collisions, coins
         for my_sprite in self.get_group().sprites():
-            if my_sprite.feet.collidelist(self.get_walls()) > -1:
-                my_sprite.move_back()
+            # fix BUG_SAUT : Ne reculer que si le sprite est un Player, pas un NPC
+            # if isinstance(my_sprite, Player):
+            if my_sprite.name == "player":
+                if my_sprite.feet.collidelist(self.get_walls()) > -1:
+                    my_sprite.move_back()
             if isinstance(my_sprite, Coin):
                 if self.player.feet.colliderect(my_sprite):
                     if verbose:
@@ -223,9 +232,9 @@ class MapManager:
     def get_object(self, name):
         return self.get_map().tmx_data.get_object_by_name(name)
 
-    # Le but est de trouver automatiquement le nombre d'objets correspondant à une regex
+    # trouver automatiquement le nombre d'objets correspondant à une regex
     # par exemple "paul_path\d"
-    def get_objects_regex(self, map, regex):
+    def get_object_by_regex(self, map, regex):
         """Return objects witch name match with a regex"""
         carte = map.tmx_data
         all_objects = carte.objects
@@ -237,10 +246,6 @@ class MapManager:
                 matching_lst.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
         return matching_lst
 
-    def draw(self):
-        self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)
-
     def update(self):
         """Fonction pour toutes les maps, appelée à chaque image"""
         self.get_group().update()
@@ -249,8 +254,12 @@ class MapManager:
         for npc in self.get_map().npcs:
             npc.move()
 
+    def draw(self):
+        self.get_group().draw(self.screen)
+        self.get_group().center(self.player.rect.center)
 
-def build_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
+
+def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
     """Deduce a 2 dimensional array from a tmx map"""
     bin_map = []
     size = tmx_data.tilewidth
@@ -272,3 +281,6 @@ def build_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
         pprint(bin_map)
         print("La carte est ci-dessus : ! ")
     return (bin_map)
+
+
+
