@@ -17,11 +17,81 @@ De plus la valeur de la pièce est aléatoire.
 
 Merge sur master
 ## 23_02_ajouter_autres_joueurs
-J'ai ajouté des NPC (Non playing Characters), PNG Personnages non joueurs. Ils se déplacent d'une façon primaire dans des
-carrés rectangles prédéfinis. 
+J'ai ajouté des NPC (Non playing Characters), ou PNG (Personnages non joueurs) en français. Ils se déplacent d'une façon primaire dans des carrés rectangles prédéfinis. 
 
 Merged sur master
 ## devel
 
+## 23_02_PNJ_en_mouvement_diagonal
+Faire en sorte que le regard du PNG soit dans le sens de la marche ! Fait. Je cherche ensuite à faire en sorte que le 
+PNG navigue en diagonal entre deux zones. 
 
+self.rect n'est pas à jour. Résolu
 
+## 23_02_tester_dijkstra
+Maintenant que mes lutins se déplacent aléatoirement de façon autonome, (mais sans respecter les zones interdites), je fais faire en sorte qu'ils se déplacent entre 2 points, en évitant les obstacles. Je vais tester l'algorithme de
+Dijkstra. OK premier succès. 
+
+## 23_02_improve_dijkstra
+Semble abandonné (grisé sur le log de Git)
+
+## 23_02_implementer_dijkstra
+La carte tmx permet de définir des zones où les NPC doivent passer. Ces zones (area) sont nommés 'robin_path1', 'robin_path2'... 
+Une fonction détecte ces zones par une expression régulière et les compte. 
+
+Le NPC se déplace à présent entre 2 zones de promenades (walk) choisies aléatoirement. 
+
+Entre ces deux areas de walk, le chemin est calculé par uen algorithme de Dijkstra. Il est assez mal réalisé par moi, mais il fonctionne.  
+
+ J'ai résolu le problème du saut initial du NPC. Cela était dû à l'absence de mise à jour de sa variable old_position. 
+Cette variable est maintenant mise à jour avant chaque mouvement. De plus j'ai fait en sorte que les NPC ne soit pas concernées par le détecteur de collision de la MapManager.check_collision(). Je décide de faire en sorte que le NPC ait une route correctement calculée. La route actuelle n'est pas parfaite : le NPC passe encore un petit peu sur l'eau. Il s'agît sans doute d'une erreur de géométrie. 
+MERGED sur devel
+## 23_02_improve_2d_structure
+Travail pour créer une structure 2 en deux dimension. Non utilisé. 
+
+## 23_03_dessiner_sur_le_jeu
+J'ai besoin d'outils pour dessiner sur le jeu. Cela peut permettre de debugger en  dessinant une zone cible sur le jeu.
+
+Dans `lib_drawing_tools.py`, j'ai créé une classe `DebugRect`, pour afficher un rectangle sur un écran. On peut l'utiliser pour visualiser une zone sur toutes les cartes ou sur une carte en particulier.
+
+Pour afficher un rectangle sur toutes les cartes, on peut par modifier le fichier `game.py` ainsi : On ajoute en fin de fonction `Run().__init__()` le code suivant : 
+
+``` python
+       # Une zone à encadrer pour debugger
+        self.game_indic = DebugRect('pink', pygame.Rect(300, 200, 40, 16), 3)  # pour tous les mondes
+```
+
+et on glisse dans la boucle `run()`, juste avant l'appel à `flip()`, responsable de l'affichage :
+``` python
+    self.game_indic.render(self.screen)
+    pygame.display.flip()
+```
+
+De façon similaire, on peut afficher un rectangle pour un monde particulier dans `map.py`. Pour cela, après enregistrement d'une carte avec la fonction register_map, on ajoute un objet de type DebugRect à cette carte : 
+```python
+        self.register_map('world',
+                          portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
+                                          teleport_point="spawn_from_world")],
+                          npcs=[  # NPC('paul', nb_areas=4),
+                              NPC('robin', self, 'world')], )
+
+        # Ajouter un rectangle indicateur dans la carte world.
+        self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
+```
+
+Puis on modifie la fonction draw() ainsi : 
+
+```python
+    def draw(self):
+        self.get_group().draw(self.screen)
+        self.get_group().center(self.player.rect.center)
+        # On ajoute un indicateur pour debugger certaines cartes
+        if self.current_map == 'world':
+            self.maps['world'].indic.render(self.screen)
+```
+Résultats : 
+
+| ![world_and_indicators.png](images%2Fworld_and_indicators.png)                                         | ![house_and_indicator.png](images%2Fhouse_and_indicator.png)    |
+|--------------------------------------------------------------------------------------------------------|-----|
+
+Un cadre rose (sur toutes les cartes) et un cadre rouge sur la carte 'monde' uniquement. 

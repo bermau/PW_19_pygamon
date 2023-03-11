@@ -1,10 +1,13 @@
 import pygame
 
 from src.map import MapManager
-import player
+
 from player import Player
 from counter import Counter
 from lib_drawing_tools import DebugRect
+import lib_drawing_tools
+
+lib_drawing_tools.display = False
 
 
 class Game:
