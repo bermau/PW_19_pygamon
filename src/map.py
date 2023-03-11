@@ -121,7 +121,8 @@ class MapManager:
                           ])
 
         self.teleport_player('player')
-        self.teleport_npcs()
+        self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin de la promenade
+        self.define_npcs_debuggers()
 
     def register_map(self, map_name, portals=None, npcs=None):
         if npcs is None:
@@ -173,17 +174,11 @@ class MapManager:
         for npc in npcs:
             group.add(npc)
 
-        # fabriquer une carte simplifiée de 0 et de 1 pour les walls
+        # Fabriquer une carte simplifiée de 0 et de 1 pour les walls
         simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
-
-    def teleport_player(self, player_name):
-        point = self.get_object(player_name)
-        self.player.position[0] = point.x - 16
-        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
-        self.player.save_location()
 
     def teleport_npcs(self):
         for map_name in self.maps:
@@ -195,7 +190,19 @@ class MapManager:
                 npc.calculate_move_direction()
                 npc.calculate_dijkstra()
                 npc.teleport_npc()
-                pass
+
+    def teleport_player(self, player_name):
+        point = self.get_object(player_name)
+        self.player.position[0] = point.x - 16
+        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
+        self.player.save_location()
+
+    def define_npcs_debuggers(self):
+        for npc in self.maps['world'].npcs:
+            for ar in npc.areas:
+                print(f"Je traite {ar} pour {npc} de {npc.areas}")
+                npc.add_indic('green', ar, 3)
+                print("Fait")
 
     def check_collision(self):
         # portals
@@ -263,7 +270,12 @@ class MapManager:
         self.get_group().center(self.player.rect.center)
         # On ajoute un indicateur pour debugger certaines cartes
         if self.current_map == 'world':
-            self.maps['world'].indic.render(self.screen)
+            self_maps_world_ = self.maps['world']
+            self_maps_world_.indic.render(self.screen)
+
+            for npc in self_maps_world_.npcs:
+                for one_indic in npc.indic:
+                    one_indic.render(self.screen)
 
 
 def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
@@ -284,7 +296,6 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
                 line_map.append(0)
         bin_map.append(line_map)
     if verbose:
-        print("Même pas planté !")
         pprint(bin_map)
         print("La carte est ci-dessus : ! ")
     return bin_map

@@ -109,8 +109,11 @@ class DijkstraManager:
                 next_point = node.bottom()
             elif dir_letter == 'B':
                 next_point = node.top()
+            elif dir_letter is None:
+                next_point = None
             else:
                 raise ValueError(f"dir = {dir_letter}")
+
             path.append((node, dir_letter))
             node = next_point
         path.append((node, None))
