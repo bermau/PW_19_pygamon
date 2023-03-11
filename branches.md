@@ -95,3 +95,23 @@ Résultats :
 |--------------------------------------------------------------------------------------------------------|-----|
 
 Un cadre rose (sur toutes les cartes) et un cadre rouge sur la carte 'monde' uniquement. 
+# Les importations : 
+main.py  : 
+  from game import Game
+
+game.py : 
+    from src.map import MapManager
+    import player
+    from player import Player
+    from counter import Counter
+
+map.py:
+    from src.player import NPC
+    from lib_dijkstra import Point
+
+player.py:
+    from map import Graph, Point, area_to_point
+
+counter:
+    - 
+
