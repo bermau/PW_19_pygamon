@@ -1,16 +1,21 @@
 import re
 from dataclasses import dataclass
+from pprint import pprint
 
 import pygame
 import pyscroll
 import pytmx
-from random import randint
+from random import randint, seed
 
-from src.player import NPC
+from src import player
+from src.player import NPC, Player
+from lib_dijkstra import Point
 
+verbose = False
+# seed(1)
 
 def groups_in_list(lst, code='X', blank=' '):
-    """Find a list of continuous signs.
+    """Find a list of continuous signs. This is used to try to reduce memory usage.
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X', ' '))
     [(2, 6), (8, 9)]
     >>> groups_in_list ((' ', ' ', 'X', 'X', 'X', 'X', 'X', ' ', 'X', 'X'))
@@ -24,6 +29,7 @@ def groups_in_list(lst, code='X', blank=' '):
             first = lst.index(code, current)
         except ValueError:
             break
+
         try:
             last = lst.index(blank, first + 1)
         except ValueError:
@@ -47,15 +53,17 @@ class Portal:
 
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
-    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 10, 10, 20, 50)
+    # Intentionally, there are more 1 point coins than 50 points coins.
+    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos):
         super().__init__()
+        self.name = 'coin'
         self.image = pygame.image.load("../map/coin.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
-        self.value = Coin.values[randint(0, len(Coin.values)-1)]
+        self.value = Coin.values[randint(0, len(Coin.values) - 1)]
 
     def move_back(self):
         pass
@@ -66,28 +74,30 @@ class Map:
     name: str
     walls: list[pygame.Rect]
     group: pyscroll.PyscrollGroup
+    simple_map: list
     tmx_data: pytmx.TiledMap
     portals: list[Portal]
     npcs: list[NPC]
 
+
 class MapManager:
     """General manager of all maps"""
+
     def __init__(self, master_game, screen, player):
         """Charge les cartes, puis téléporte le joueur et enfin les NPC"""
         self.master_game = master_game
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
-        # self.single_npc = single_npc
         self.current_map = 'world'
 
-        # Dans Portal on indique comment les sorties (= comment entrer dans un autre monde)
-        # Attention le from_world doit absolument avoir tous les origine_points.
+        # Dans Portal on indique comment entrer dans un autre monde.
+        # Attention le from_world doit absolument avoir tous les origin_points.
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[NPC('paul', nb_areas=4), NPC('robin', nb_areas=4)]
-                          )
+                          npcs=[# NPC('paul', nb_areas=4),
+                              NPC('robin', self, 'world')])
 
         self.register_map('house',
                           portals=[
@@ -108,18 +118,13 @@ class MapManager:
         self.teleport_player('player')
         self.teleport_npcs()
 
-    def teleport_player(self, player_name):
-        point = self.get_object(player_name)
-        self.player.position[0] = point.x - 16
-        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
-        self.player.save_location()
-
     def register_map(self, map_name, portals=None, npcs=None):
         if npcs is None:
             npcs = []
         if portals is None:
             portals = []
-        print("Registering map", map_name)
+        if verbose:
+            print("Registering map", map_name)
 
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
@@ -127,9 +132,9 @@ class MapManager:
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
 
-        # Définir une liste de collisions et champignons
+        # Définir une liste de collisions
         walls = []
-        # Je vais ajouter des coins comme des sprites (méthode venant de
+        # Je vais ajouter des pièces/coins en tant que sprites (méthode venant de
         # https://coderslegacy.com/pygame-platformer-coins-and-images/ )
         coins = pygame.sprite.Group()
 
@@ -157,22 +162,36 @@ class MapManager:
 
         # Dessiner le groupe de calques
         # default_layer à 0 : bonhomme sur herbe, sous chemin
-        group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5) # Pourquoi 5 :
+        group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)  # Pourquoi 5 :
         group.add(self.player)
         # group.add(npcs)
         group.add(coins)
         for npc in npcs:
             group.add(npc)
 
+        # fabriquer une carte simplifiée de 0 et de 1 pour les walls
+        simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
+
         # Créer un objet Map
-        self.maps[map_name] = Map(map_name, walls, group, tmx_data, portals, npcs)
+        self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
+
+    def teleport_player(self, player_name):
+        point = self.get_object(player_name)
+        self.player.position[0] = point.x - 16
+        self.player.position[1] = point.y - 32  # pour régler le niveau des pieds.
+        self.player.save_location()
 
     def teleport_npcs(self):
         for map_name in self.maps:
             map_data = self.maps[map_name]
             for npc in map_data.npcs:
-                npc.load_points(self)
+                npc.areas = self.get_object_by_regex(map_data, r"robin_path\d")
+                npc.areas_nb = len(npc.areas)  # BOUH
+                npc.define_first_target()
+                npc.calculate_move_direction()
+                npc.calculate_dijkstra()
                 npc.teleport_npc()
+                pass
 
     def check_collision(self):
         # portals
@@ -189,11 +208,15 @@ class MapManager:
 
         # collisions, coins
         for my_sprite in self.get_group().sprites():
-            if my_sprite.feet.collidelist(self.get_walls()) > -1:
-                my_sprite.move_back()
+            # fix BUG_SAUT : Ne reculer que si le sprite est un Player, pas un NPC
+            # if isinstance(my_sprite, Player):
+            if my_sprite.name == "player":
+                if my_sprite.feet.collidelist(self.get_walls()) > -1:
+                    my_sprite.move_back()
             if isinstance(my_sprite, Coin):
                 if self.player.feet.colliderect(my_sprite):
-                    print(f"Miam ! {my_sprite.value} points !!")
+                    if verbose:
+                        print(f"Miam ! {my_sprite.value} points !!")
                     self.master_game.point_counter.points += my_sprite.value
                     my_sprite.kill()
 
@@ -209,13 +232,19 @@ class MapManager:
     def get_object(self, name):
         return self.get_map().tmx_data.get_object_by_name(name)
 
-    def get_objects_regex(self, regex):
-        """Return objectd witch name match with a regex"""
-        AA = self.get_map().tmx_data
+    # trouver automatiquement le nombre d'objets correspondant à une regex
+    # par exemple "paul_path\d"
+    def get_object_by_regex(self, map, regex):
+        """Return objects witch name match with a regex"""
+        carte = map.tmx_data
+        all_objects = carte.objects
 
-    def draw(self):
-        self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)
+        matching_lst = []
+        for tiled_object in all_objects:
+            if re.match(regex, str(tiled_object.name)):
+                obj = self.get_object(tiled_object.name)
+                matching_lst.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+        return matching_lst
 
     def update(self):
         """Fonction pour toutes les maps, appelée à chaque image"""
@@ -224,3 +253,34 @@ class MapManager:
         # Bouger les NPC
         for npc in self.get_map().npcs:
             npc.move()
+
+    def draw(self):
+        self.get_group().draw(self.screen)
+        self.get_group().center(self.player.rect.center)
+
+
+def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
+    """Deduce a 2 dimensional array from a tmx map"""
+    bin_map = []
+    size = tmx_data.tilewidth
+    map_w = tmx_data.width * size
+    map_h = tmx_data.height * size
+    steps = size * reduction_factor
+    dec = int(steps / reduction_factor)
+    for i, y in enumerate(range(0 + dec, map_h + dec, steps)):
+        line_map = []
+        for j, x in enumerate(range(0, map_w, steps)):
+            PP = pygame.Rect(x, y, 1, 1)
+            if PP.collidelist(walls_block_list) != -1:  # See documentation of colidelist()
+                line_map.append(1)
+            else:
+                line_map.append(0)
+        bin_map.append(line_map)
+    if verbose:
+        print("Même pas planté !")
+        pprint(bin_map)
+        print("La carte est ci-dessus : ! ")
+    return (bin_map)
+
+
+
