@@ -4,7 +4,7 @@ from src.map import MapManager
 import player
 from player import Player
 from counter import Counter
-from lib_drawing_tools import MyRect
+from lib_drawing_tools import DebugRect
 
 
 class Game:
@@ -14,15 +14,14 @@ class Game:
         # créer la fenêtre du jeu
         self.screen = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("Dinosaure aventure")
-        player.SCREEN = self.screen
-
         # générer un joueur
         self.player = Player(0, 0)
+        # Gestionnaire de cartes
         self.map_manager = MapManager(self, self.screen, self.player)
         # Un compteur
         self.point_counter = Counter()
         # Une zone à encadrer pour debugger
-        self.indicator = MyRect()
+        self.game_indic = DebugRect('pink', pygame.Rect(300, 250, 80, 120), 3)  # pour tous les mondes
 
     def handle_input(self):
         pressed = pygame.key.get_pressed()
@@ -54,7 +53,7 @@ class Game:
             self.map_manager.update()
             self.map_manager.draw()
             self.point_counter.render(self.screen)
-            self.indicator.render(self.screen)
+            self.game_indic.render(self.screen)
 
             pygame.display.flip()
 

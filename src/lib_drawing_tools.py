@@ -2,10 +2,13 @@
 
 import pygame
 
-class MyRect():
-    def __init__(self):
-        self.zone = pygame.Rect(122, 150, 80, 80)
+class DebugRect():
+    def __init__(self, color, pygame_rect, l_width):
+
+        self.zone = pygame_rect
+        self.color = color
+        self.l_width = l_width
 
     def render(self, screen):
         pass
-        pygame.draw.rect(screen, "blue", self.zone, 3)
+        pygame.draw.rect(screen, self.color, self.zone, self.l_width)

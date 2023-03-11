@@ -7,12 +7,13 @@ import pyscroll
 import pytmx
 from random import randint, seed
 
-from src import player
-from src.player import NPC, Player
-from lib_dijkstra import Point
+from src.player import NPC
+
+from lib_drawing_tools import DebugRect
 
 verbose = False
 # seed(1)
+
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -91,14 +92,18 @@ class MapManager:
         self.player = player
         self.current_map = 'world'
 
-        # Dans Portal on indique comment entrer dans un autre monde.
+        # Portal indique comment entrer dans un autre monde.
         # Attention le from_world doit absolument avoir tous les origin_points.
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[# NPC('paul', nb_areas=4),
-                              NPC('robin', self, 'world')])
+                          npcs=[  # NPC('paul', nb_areas=4),
+                              NPC('robin', self, 'world')], )
 
+        # Ajouter un rectangle indicateur dans la carte world.
+        self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
+
+        # Enregistrer les autres cartes.
         self.register_map('house',
                           portals=[
                               Portal(from_world='house', origin_point='enter_world', target_world='world',
@@ -134,8 +139,8 @@ class MapManager:
 
         # Définir une liste de collisions
         walls = []
-        # Je vais ajouter des pièces/coins en tant que sprites (méthode venant de
-        # https://coderslegacy.com/pygame-platformer-coins-and-images/ )
+
+        # Ajouter des pièces/coins en tant que sprites.
         coins = pygame.sprite.Group()
 
         for obj in tmx_data.objects:
@@ -160,8 +165,7 @@ class MapManager:
                 for group in groups_in_list(line, code='X', blank=' '):
                     walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
 
-        # Dessiner le groupe de calques
-        # default_layer à 0 : bonhomme sur herbe, sous chemin
+        # Dessiner le groupe de calques. Si default_layer = 0 : bonhomme sur herbe, sous chemin
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)  # Pourquoi 5 :
         group.add(self.player)
         # group.add(npcs)
@@ -234,9 +238,9 @@ class MapManager:
 
     # trouver automatiquement le nombre d'objets correspondant à une regex
     # par exemple "paul_path\d"
-    def get_object_by_regex(self, map, regex):
+    def get_object_by_regex(self, a_map, regex):
         """Return objects witch name match with a regex"""
-        carte = map.tmx_data
+        carte = a_map.tmx_data
         all_objects = carte.objects
 
         matching_lst = []
@@ -257,6 +261,9 @@ class MapManager:
     def draw(self):
         self.get_group().draw(self.screen)
         self.get_group().center(self.player.rect.center)
+        # On ajoute un indicateur pour debugger certaines cartes
+        if self.current_map == 'world':
+            self.maps['world'].indic.render(self.screen)
 
 
 def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
@@ -280,7 +287,4 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
         print("Même pas planté !")
         pprint(bin_map)
         print("La carte est ci-dessus : ! ")
-    return (bin_map)
-
-
-
+    return bin_map
