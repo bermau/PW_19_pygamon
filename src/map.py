@@ -6,6 +6,8 @@ import pygame
 import pyscroll
 import pytmx
 from random import randint, seed
+
+from src import player
 from src.player import NPC, Player
 from lib_dijkstra import Point
 
@@ -56,6 +58,7 @@ class Coin(pygame.sprite.Sprite):
 
     def __init__(self, pos):
         super().__init__()
+        self.name = 'coin'
         self.image = pygame.image.load("../map/coin.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -206,7 +209,8 @@ class MapManager:
         # collisions, coins
         for my_sprite in self.get_group().sprites():
             # fix BUG_SAUT : Ne reculer que si le sprite est un Player, pas un NPC
-            if isinstance(my_sprite, Player):
+            # if isinstance(my_sprite, Player):
+            if my_sprite.name == "player":
                 if my_sprite.feet.collidelist(self.get_walls()) > -1:
                     my_sprite.move_back()
             if isinstance(my_sprite, Coin):

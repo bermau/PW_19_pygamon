@@ -12,6 +12,7 @@ class Entity(pygame.sprite.Sprite):
 
     def __init__(self, name, x, y, screen=None):
         super().__init__()
+        self.name = name
         self.sprite_sheet = pygame.image.load(f'../sprites/{name}.png')
         self.image = self.get_image(0, 0)
         self.image.set_colorkey([0, 0, 0])
@@ -79,6 +80,7 @@ class NPC(Entity):
         self.map_manager = map_manager
         self.map_name = map_name
         self.debug_count =0
+        self.move_direction = None
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
         # J'appelle cette zone une area. Elle est de type pygame.Rect
@@ -86,10 +88,14 @@ class NPC(Entity):
         self.areas_nb = None
         self.current_area_idx = None  # ndint(0, self.nb_areas-1)  # index de area
         self.next_area_idx = None
-
-        # les points de la carte simplifiée
+        
+        # Entre 2 zones, on définit une promenade / walk. Le chemin de la promenade est trouvé selon un algorithme 
+        # simple ou un algorithme de Dijkstra.
         self.use_dijkstra = True
+
+        # les points de la carte simplifiée pour résoudre la promenade/ walk.        
         self.djik = None  # Objet pour résoudre le chemin selon Dijkstra.
+        # Les points ci dessous sont utilisé pour guider le mouvement dans la promenade.
         self.prev_point = None  # Le Point d'où lon vient. Sera initialisé par init_dijkstra
         self.next_point = None  # Le Point où l'on va
         self.next_point_rect: pygame.Rect = None  # Son équivalent en pygame.rect
@@ -132,7 +138,7 @@ class NPC(Entity):
                 self.move_direction = 'NW'
         print(f"Nouvelle cible : {self.next_area_idx}, direction : {self.move_direction}")
 
-    def calculate_dijkstra(self):
+    def calculate_dijkstra(self, verbose=False):
         """Lit la carte simplifiée.
         L'algorithme utilise une version réduite de la carte. La réduction est de 1 ou 2 fois la taille des
         tuiles.
@@ -147,13 +153,13 @@ class NPC(Entity):
 
         next_area = self.areas[self.next_area_idx]
         map_name = self.map_manager.maps[self.map_name]
-        next_point = pyrect_to_point(map_name, next_area, 32)
-        verbose = True
+        end_point = pyrect_to_point(map_name, next_area, 32)
+
         if verbose:
-            print(f"Il faut aller du point {start_point} au point {next_point}")
+            print(f"Il faut aller du point {start_point} au point {end_point}")
         self.dijk.dijkstra(start_point, verbose=0)
 
-        self.dijk.format_path(start_point, next_point, verbose=True)
+        self.dijk.format_path(start_point, end_point, verbose=True)
 
         self.prev_point = start_point
         self.dijk.give_next_instruction()    # IMPORTANT : on élimine la dernière valeur
@@ -211,8 +217,9 @@ class NPC(Entity):
             else:
                 print("********** Arrivé ! ************")
                 # Trouver une nouvelle cible au NPC
+                self.current_area_idx = self.next_area_idx
                 self.calculate_next_area_idx()
-
+                self.calculate_dijkstra()
 
 
         print(f"{self.debug_count}, {sens} actuel : point_actuel: {self.prev_point} rect: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
