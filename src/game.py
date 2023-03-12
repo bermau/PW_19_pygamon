@@ -9,14 +9,15 @@ import lib_drawing_tools
 
 lib_drawing_tools.display = True
 
+
 class Game:
     def __init__(self):
         pygame.init()
 
-        # créer la fenêtre du jeu
+        # Créer la fenêtre du jeu
         self.screen = pygame.display.set_mode((800, 800))
         pygame.display.set_caption("Dinosaure aventure")
-        # générer un joueur
+        # Générer un joueur
         self.player = Player(0, 0)
         # Gestionnaire de cartes
         self.map_manager = MapManager(self, self.screen, self.player)
@@ -45,9 +46,16 @@ class Game:
         self.map_manager.update()
 
     def run(self):
+        # Boucle. Arrêt par la fermeture de la fenêtre ou Q. "P" pour pause, puis Esc
         clock = pygame.time.Clock()
 
-        running = True
+        myfont = pygame.font.SysFont("monospace", 32)
+        # myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 18)
+
+        pause_text = r"""<Esc> to resume or [Q] to quit."""
+        text_pause = myfont.render(pause_text, True, 'purple')
+
+        running, pause = True, False
         while running:
             self.player.save_location()
             self.handle_input()
@@ -57,13 +65,25 @@ class Game:
             self.point_counter.render(self.screen)
             self.game_indic.render(self.screen)
 
-            pygame.display.flip()
-
             for even in pygame.event.get():
                 if even.type == pygame.QUIT:
                     running = False
+                if even.type == pygame.KEYDOWN and even.key == pygame.K_p:
+                    pause = True
 
+                while pause:
+                    self.screen.blit(text_pause, (50, 400))
+                    pygame.display.flip()
+
+                    for ev in pygame.event.get():
+                        if ev.type == pygame.QUIT or ev.type == pygame.KEYDOWN and ev.key == pygame.K_q:
+                            pause = False
+                            running = False
+                        if ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
+                            pause = False
+                        if ev.type == pygame.KEYDOWN and ev.key == pygame.K_p:
+                            pause = True
+
+            pygame.display.flip()
             clock.tick(60)  # nb images /sec
         pygame.quit()
-
-
