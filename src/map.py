@@ -9,7 +9,7 @@ from random import randint, seed
 
 from src.player import NPC
 
-from lib_drawing_tools import DebugRect
+from lib_drawing_tools import DebugRect, render_world_grill, render_simple_world
 
 verbose = False
 # seed(1)
@@ -268,10 +268,12 @@ class MapManager:
     def draw(self):
         self.get_group().draw(self.screen)
         self.get_group().center(self.player.rect.center)
-        # On ajoute un indicateur pour debugger certaines cartes
+        # On ajoute des indicateurs pour debugger certaines cartes
         if self.current_map == 'world':
             self_maps_world_ = self.maps['world']
             self_maps_world_.indic.render(self.screen)
+            render_world_grill(self.screen, self_maps_world_)
+            render_simple_world(self.screen, self_maps_world_)
 
             for npc in self_maps_world_.npcs:
                 for one_indic in npc.indic:
