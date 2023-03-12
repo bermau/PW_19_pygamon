@@ -95,6 +95,16 @@ Résultats :
 |--------------------------------------------------------------------------------------------------------|-----|
 
 Un cadre rose (sur toutes les cartes) et un cadre rouge sur la carte 'monde' uniquement. 
+
+## 23_03_pourquoi_NPC_passe_sur_l_eau
+Mon NPC se déplace tout seul, et il respecte à peu près les zones d'eau et les zones de collision. Dans certains cas, il ne déplace sur l'eau. Pour comprendre ce qu'il se passe j'ai ajouté une grille (cf. lib_drawing_tools.py) et des carrés pour indiquer les zones interdites selon la carte simplifiée. De plus j'ai écrit une fonction de pause. L'ensemble permet d'analyser les erreur. Exemple d'erreur : 
+![](/home/bertrand/important/prog_local/PW_19_pygamon/images/le_fautif.png). 
+Le NPC est sur l'eau. Or l'eau est perçue comme interdite selon la carte simplifiée. Les zones interdites de la carte simplifiée sont marquées d'un carré bleu. 
+
+Pour analyser l'erreur, j'initialise le générateur de nombre aléatoire avec l'instruction `seed()` dans `maps.py`.
+
+L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il avait obtenu le point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
+
 # Les importations : 
 main.py  : 
   from game import Game
