@@ -448,10 +448,10 @@
   <object id="73" name="paul_path2" x="369.03" y="48.0152" width="15.6364" height="15.8182"/>
   <object id="74" name="paul_path3" x="369.03" y="96.697" width="15.6364" height="15.8182"/>
   <object id="75" name="paul_path4" x="208.197" y="96.2121" width="15.6364" height="15.4545"/>
-  <object id="76" name="robin_path1" x="450" y="608.5" width="29.8333" height="32.4167"/>
-  <object id="77" name="robin_path2" x="386.456" y="271.586" width="29" height="30"/>
-  <object id="78" name="robin_path3" x="658.25" y="276.833" width="32.1667" height="30.8333"/>
-  <object id="79" name="robin_path4" x="151.667" y="390.833" width="20.1667" height="16.8333"/>
-  <object id="84" name="robin_path5" x="351" y="663" width="33" height="20"/>
+  <object id="76" name="robin_path1" x="452.5" y="611" width="23.3333" height="25.9167"/>
+  <object id="77" name="robin_path2" x="387.456" y="258.586" width="25.5" height="26"/>
+  <object id="78" name="robin_path3" x="642.25" y="257.333" width="26.6667" height="26.8333"/>
+  <object id="79" name="robin_path4" x="163.667" y="387.833" width="24.6667" height="23.3333"/>
+  <object id="84" name="robin_path5" x="355" y="643.5" width="25" height="23"/>
  </objectgroup>
 </map>

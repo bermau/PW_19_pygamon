@@ -7,6 +7,8 @@ import pygame
 
 class Point:
     def __init__(self, x, y):
+        """x : = row, descending
+           y : = col, left to right"""
         self.x = x
         self.y = y
 

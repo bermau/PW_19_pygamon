@@ -209,7 +209,11 @@ class NPC(Entity):
         else:
             raise ValueError(f"{sens} : error code letter")
 
-        if self.rect.colliderect(self.next_point_rect):
+        # Il faut que le NPC passe bien sur la cible.
+        dec = -8
+        next_point_infl = self.next_point_rect.inflate(dec, dec)
+        print(f"next_point_infl : {next_point_infl}")
+        if self.rect.contains(next_point_infl):
             print("  ***************         COLISION       **************")
             self.prev_point = self.next_point  # ne sert à rien pour l'instant
             self.next_point, self.next_dir = self.dijk.give_next_instruction()

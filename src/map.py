@@ -9,7 +9,7 @@ from random import randint, seed
 
 from src.player import NPC
 
-from lib_drawing_tools import DebugRect, render_world_grill, render_simple_world
+from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
 verbose = False
 # seed(1)
@@ -101,7 +101,7 @@ class MapManager:
                               NPC('robin', self, 'world')], )
 
         # Ajouter un rectangle indicateur dans la carte world.
-        self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
+        # self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
 
         # Enregistrer les autres cartes.
         self.register_map('house',
@@ -267,12 +267,12 @@ class MapManager:
 
     def draw(self):
         self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)
+        self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
         # On ajoute des indicateurs pour debugger certaines cartes
         if self.current_map == 'world':
             self_maps_world_ = self.maps['world']
-            self_maps_world_.indic.render(self.screen)
-            render_world_grill(self.screen, self_maps_world_)
+            # self_maps_world_.indic.render(self.screen)
+            render_world_grid(self.screen, self_maps_world_)
             render_simple_world(self.screen, self_maps_world_)
 
             for npc in self_maps_world_.npcs:
