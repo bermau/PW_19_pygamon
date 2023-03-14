@@ -67,7 +67,7 @@ et on glisse dans la boucle `run()`, juste avant l'appel à `flip()`, responsabl
     pygame.display.flip()
 ```
 
-De façon similaire, on peut afficher un rectangle pour un monde particulier dans `map.py`. Pour cela, après enregistrement d'une carte avec la fonction register_map, on ajoute un objet de type DebugRect à cette carte : 
+De façon similaire, on peut afficher un rectangle pour un monde particulier dans `map.py`. Pour cela, après enregistrement d'une carte avec la fonction `register_map`, on ajoute un objet de type `DebugRect` à cette carte : 
 ```python
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
@@ -79,7 +79,7 @@ De façon similaire, on peut afficher un rectangle pour un monde particulier dan
         self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
 ```
 
-Puis on modifie la fonction draw() ainsi : 
+Puis on modifie la fonction `draw() `ainsi : 
 
 ```python
     def draw(self):
@@ -97,11 +97,11 @@ Résultats :
 Un cadre rose (sur toutes les cartes) et un cadre rouge sur la carte 'monde' uniquement. 
 
 ## 23_03_pourquoi_NPC_passe_sur_l_eau
-Mon NPC se déplace tout seul, et il respecte à peu près les zones d'eau et les zones de collision. Dans certains cas, il ne déplace sur l'eau. Pour comprendre ce qu'il se passe j'ai ajouté une grille (cf. lib_drawing_tools.py) et des carrés pour indiquer les zones interdites selon la carte simplifiée. De plus j'ai écrit une fonction de pause. L'ensemble permet d'analyser les erreur. Exemple d'erreur : 
+Mon NPC se déplace tout seul, et il respecte à peu près les zones d'eau et les zones de collision. Dans certains cas, il ne déplace sur l'eau. Pour comprendre ce qu'il se passe j'ai ajouté une grille (cf. `lib_drawing_tools.py`) et des carrés pour indiquer les zones interdites selon la carte simplifiée. De plus j'ai écrit une fonction de pause. L'ensemble permet d'analyser les erreurs. Exemple d'erreur : 
 ![](/home/bertrand/important/prog_local/PW_19_pygamon/images/le_fautif.png). 
 Le NPC est sur l'eau. Or l'eau est perçue comme interdite selon la carte simplifiée. Les zones interdites de la carte simplifiée sont marquées d'un carré bleu. 
 
-Pour analyser l'erreur, j'initialise le générateur de nombre aléatoire avec l'instruction `seed()` dans `maps.py`.
+Pour analyser l'erreur, j'initialise le générateur de nombre aléatoire avec l'instruction `seed()` dans `maps.py`. Je me suis rendu compte que l'erreur portait sur les premiers instants du jeu. 
 
 L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il avait obtenu le point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
 
