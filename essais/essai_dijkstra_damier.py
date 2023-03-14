@@ -120,7 +120,6 @@ class Graph:
         local_min = MAX
         best_index = None
         best_direction = None
-        print('Point en entrée de sélection', p)
         neighbors = [[p, '0'], [p.top(), 'T'], [p.bottom(), 'B'], [p.left(), 'L'], [p.right(), 'R']]
         for v, dir in neighbors:
             if self.distance[v.x][v.y] < local_min and not self.visited[v.x][v.y]:
@@ -144,7 +143,7 @@ class Graph:
                     return False
         return True
 
-    def dijkstra(self, source):
+    def dijkstra(self, source, verbose=False):
         """Calculates all shortest distances from source to all nodes."""
         self.distance[source.x][source.y] = 0
         self.visited[source.x][source.y] = False
@@ -154,53 +153,63 @@ class Graph:
         while True:
             loop_i += 1
             for passage_for_a_rnd_point in range(20):
-                self.print_visited()
-                self.print_distances()
-                title("Passage " + str(passage_for_a_rnd_point))
+                if verbose:
+                    self.print_visited()
+                    self.print_distances()
+                if verbose:
+                    title("Passage " + str(passage_for_a_rnd_point))
                 u, dir = self.node_with_min_distance(u)  # During first execution, return the source point.
                 if not u:
                     break
-                print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
+                if verbose:
+                    print("Noeud non visité avec la plus petite distance : ", u, ". On travaille maintenant sur ce noeud.")
                 self.visited[u.x][u.y] = True
-                print(f"Le noeud {u} est marqué comme visité.")
-                self.print_visited()
+                if verbose:
+                    print(f"Le noeud {u} est marqué comme visité.")
+                    self.print_visited()
                 # print(f"ligne pour u = {u} vaut : {self.graph[u]}")
                 # On examine ici tous les mouvements possibles depuis v. Soit 4 points
                 neighbors = [[u.top(), 'T'], [u.bottom(), 'B'], [u.left(), 'L'], [u.right(), 'R']]
                 for neighbor, dir in neighbors:
-                    print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end='')
+                    if verbose:
+                        print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end='')
                     if not self.visited[neighbor.x][neighbor.y]:
                         if self.graph[neighbor.x][neighbor.y] == 0:
-                            print(f"Valeur possible ?\nEst-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
+                            if verbose:
+                                print(f"Valeur possible ?\nEst-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
                                   f"Alors que nous avons déjà une solution pour aller en {neighbor} par une autre "
                                   f"voie ? ")
-                            print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
+                                print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
                                   f"Cout actuel pour arriver sur {u} : {self.distance[u.x][u.y]}, "
                                   f"Pour passer de {u} à {neighbor} : 1 ", end='')
 
                             if self.distance[neighbor.x][neighbor.y] > self.distance[u.x][u.y] + 1:
-                                print(f"Valeur retenue ! {self.distance[u.x][u.y] + 1}")
+                                if verbose:
+                                    print(f"Valeur retenue ! {self.distance[u.x][u.y] + 1}")
                                 self.distance[neighbor.x][neighbor.y] = self.distance[u.x][u.y] + 1
                                 self.parent[neighbor.x][neighbor.y] = dir
                             else:
-                                print("Trajet plus coûteux donc non intéressant")
+                                if verbose:
+                                    print("Trajet plus coûteux donc non intéressant")
                         else:
-                            print("Mur")
+                            if verbose:
+                                print("Mur")
                             self.visited[neighbor.x][neighbor.y] = True
                     else:
-                        print("déjà visité")
-                print("All neighbors visited")
-                self.print_distances()
-
-            self.pSol()
-            print("Fin passage ", loop_i)
+                        if verbose:
+                            print("déjà visité")
+                if verbose:
+                    print("All neighbors visited")
+                    self.print_distances()
+            if verbose:
+                print("Fin passage ", loop_i)
             # On passe à un autre point aléatoire
             if self.all_points_are_expored():
                 break
             u = self.choose_non_visited_rnd_point()
-
-        title("SUITE... et FIN")
-        print(f"Tout semble exploré après {loop_i} passages.")
+        if verbose:
+            title("SUITE... et FIN")
+            print(f"Tout semble exploré après {loop_i} passages.")
 
 
 f = Graph(6, 9)
@@ -220,4 +229,4 @@ f.graph = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
 START = Point(1, 1)
 DEST = Point(4, 6)
 f.dijkstra(START)
-f.get_path(START, DEST, verbose=True)
+f.get_path(START, DEST, verbose=False)

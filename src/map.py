@@ -84,12 +84,13 @@ class Map:
 class MapManager:
     """General manager of all maps"""
 
-    def __init__(self, master_game, screen, player):
+    def __init__(self, master_game, screen, player, verbose=False):
         """Charge les cartes, puis téléporte le joueur et enfin les NPC"""
         self.master_game = master_game
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
+        self.verbose = verbose
         self.current_map = 'world'
 
         # Portal indique comment entrer dans un autre monde.
@@ -200,9 +201,9 @@ class MapManager:
     def define_npcs_debuggers(self):
         for npc in self.maps['world'].npcs:
             for ar in npc.areas:
-                print(f"Je traite {ar} pour {npc} de {npc.areas}")
+                if verbose:
+                    print(f"Je traite {ar} pour {npc} de {npc.areas}")
                 npc.add_indic('green', ar, 3)
-                print("Fait")
 
     def check_collision(self):
         # portals

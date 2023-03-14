@@ -73,13 +73,14 @@ class Player(Entity):
 
 
 class NPC(Entity):
-    def __init__(self, name, map_manager, map_name, screen=None):
+    def __init__(self, name, map_manager, map_name, screen=None, verbose=False):
 
         super().__init__(name, 500, 550, screen)
         self.name = name  #
         self.change_animation("left")
         self.map_manager = map_manager
         self.map_name = map_name
+        self.verbose = verbose
         self.debug_count = 0
         self.move_direction = None
         self.indic = []  # Liste d'indicateurs de débogage
@@ -137,7 +138,8 @@ class NPC(Entity):
                 self.move_direction = 'SW'
             else:
                 self.move_direction = 'NW'
-        print(f"Nouvelle cible : {self.next_area_idx}, direction : {self.move_direction}")
+        if verbose:
+            print(f"Nouvelle cible : {self.next_area_idx}, direction : {self.move_direction}")
 
     def calculate_dijkstra(self, verbose=False):
         """Lit la carte simplifiée.
@@ -166,8 +168,9 @@ class NPC(Entity):
         self.dijk.give_next_instruction()  # IMPORTANT : on élimine la dernière valeur
         self.next_point, self.next_dir = self.dijk.give_next_instruction()
         self.next_point_rect = pygame.Rect(point_to_pyrect(map_name, self.next_point))
-        print("Fin de calcul du Dijkstra")
-        print(f"{self.next_dir} point_actuel: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
+        if verbose:
+            print("Fin de calcul du Dijkstra")
+            print(f"{self.next_dir} point_actuel: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
 
     def define_first_target(self):
         self.current_area_idx = 0  # index de area
@@ -212,24 +215,26 @@ class NPC(Entity):
         # Il faut que le NPC passe bien sur la cible.
         dec = -8
         next_point_infl = self.next_point_rect.inflate(dec, dec)
-        print(f"next_point_infl : {next_point_infl}")
+        if verbose:
+            print(f"next_point_infl : {next_point_infl}")
         if self.rect.contains(next_point_infl):
-            print("  ***************         COLISION       **************")
+            if verbose:
+                print("  ***************         COLISION       **************")
             self.prev_point = self.next_point  # ne sert à rien pour l'instant
             self.next_point, self.next_dir = self.dijk.give_next_instruction()
             if self.next_point:
                 self.next_point_rect = pygame.Rect(point_to_pyrect(self.map_name, self.next_point))
             else:
-                print("********** Arrivé ! ************")
+                if verbose:
+                    print("********** Arrivé ! ************")
                 # Trouver une nouvelle cible au NPC
                 self.current_area_idx = self.next_area_idx
                 self.calculate_next_area_idx()
                 self.calculate_dijkstra()
 
-
-        print(f"{self.debug_count}, {sens} actuel : point_actuel: {self.prev_point} rect: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
-        print(f"next_dir devient {self.next_dir}")
-        pass
+        if verbose:
+            print(f"{self.debug_count}, {sens} actuel : point_actuel: {self.prev_point} rect: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
+            print(f"next_dir devient {self.next_dir}")
 
     def move_classical(self):
         """Mouvement automatique. Algorithme primaire."""
@@ -288,5 +293,4 @@ class NPC(Entity):
             self.calculate_move_direction()
 
     def add_indic(self, *rectpy):
-        print(f"Passe ici : ")
         self.indic.append(DebugRect(*rectpy))

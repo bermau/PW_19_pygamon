@@ -171,7 +171,7 @@ class DijkstraManager:
                     return False
         return True
 
-    def dijkstra(self, source, verbose = 0):
+    def dijkstra(self, source, verbose=0):
         """Calculates all shortest distances from source to all nodes."""
 
         self.distance[source.x][source.y] = 0
@@ -195,23 +195,27 @@ class DijkstraManager:
                 self.visited[u.x][u.y] = True
                 if verbose:
                     print(f"Le noeud {u} est marqué comme visité.")
-                self.print_visited()
+                if verbose:
+                    self.print_visited()
                 #  print(f"ligne pour u = {u} vaut : {self.graph[u]}")
                 # On examine ici tous les mouvements possibles depuis v. Soit 4 points.
                 neighbors = [[u.top(), 'T'], [u.bottom(), 'B'], [u.left(), 'L'], [u.right(), 'R']]
                 for neighbor, dir in neighbors:
-                    print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end='')
+                    if verbose:
+                        print(f"Noeud neighbor {neighbor} , val = {self.graph[neighbor.x][neighbor.y]} .", end='')
                     if not self.visited[neighbor.x][neighbor.y]:
                         if self.graph[neighbor.x][neighbor.y] == 0:
-                            print(f"Valeur possible ?\nEst-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
+                            if verbose:
+                                print(f"Valeur possible ?\nEst-ce que cela vaut le coup d'aller de {u} à {neighbor} ?",
                                   f"Alors que nous avons déjà une solution pour aller en {neighbor} par une autre "
                                   f"voie ? ")
-                            print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
+                                print(f"Le cout actuel pour {neighbor} : {self.distance[neighbor.x][neighbor.y]}",
                                   f"Cout actuel pour arriver sur {u} : {self.distance[u.x][u.y]}, "
                                   f"Pour passer de {u} à {neighbor} : 1 ", end='')
 
                             if self.distance[neighbor.x][neighbor.y] > self.distance[u.x][u.y] + 1:
-                                print(f"Valeur retenue ! {self.distance[u.x][u.y] + 1}")
+                                if verbose:
+                                    print(f"Valeur retenue ! {self.distance[u.x][u.y] + 1}")
                                 self.distance[neighbor.x][neighbor.y] = self.distance[u.x][u.y] + 1
                                 self.parent[neighbor.x][neighbor.y] = dir
                             else:
@@ -222,8 +226,10 @@ class DijkstraManager:
                                 print("Mur")
                             self.visited[neighbor.x][neighbor.y] = True
                     else:
-                        print("déjà visité")
-                print("All neighbors visited")
+                        if verbose:
+                            print("déjà visité")
+                if verbose:
+                    print("All neighbors visited")
                 if verbose >=1:
                     self.print_distances()
 
@@ -269,6 +275,6 @@ if __name__ == '__main__':
 
     START = Point(1, 1)
     DEST = Point(4, 6)
-    f.dijkstra(START, verbose = 1)
+    f.dijkstra(START, verbose=0)
     f.format_path(START, DEST, verbose=True)
     pass
