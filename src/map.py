@@ -68,24 +68,28 @@ class Coin(pygame.sprite.Sprite):
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
-        self.counter_for_explosion = 60
-
-    def explode(self ):
+        self.counter_for_explosion = 20
+        self.biginning_of_the_end_time = None
+        self.pause_text = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
-        pause_text = str(self.value)
-        coin_text = myfont.render(pause_text, True, 'purple')
-        # self.screen.blit()
+        self.coin_text = myfont.render(self.pause_text, True, 'purple')
+        self.display_time = 1000
 
-        self.counter_for_explosion -= 1
-        if self.counter_for_explosion > 0:
-            self.screen.blit(coin_text, self.rect)
-            pygame.draw.rect(self.screen, 'blue', pygame.Rect(100, 100, 50, 50))
-            pygame.display.flip()
+    def effect_during_death(self):
+        """Action durant quelques secondes"""
+        if not self.biginning_of_the_end_time:
+            self.biginning_of_the_end_time = pygame.time.get_ticks()
+
+        current_time = pygame.time.get_ticks()
+        if current_time - self.biginning_of_the_end_time < self.display_time:
+            self.display_its_last_secondes()
         else:
             self.kill()
 
-    def move_back(self):
-        pass
+    def display_its_last_secondes(self):
+        self.screen.blit(self.coin_text, self.rect)
+        if pygame.time.get_ticks() - self.biginning_of_the_end_time > self.display_time:
+            self.kill()
 
 
 @dataclass
@@ -116,8 +120,9 @@ class MapManager:
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          npcs=[  # NPC('paul', nb_areas=4),
-                              NPC('robin', self, 'world')], )
+                          # npcs=[  NPC('paul', self, 'world'),
+                          #      NPC('robin', self, 'world')],
+                          )
 
         # Ajouter un rectangle indicateur dans la carte world.
         # self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
@@ -247,10 +252,13 @@ class MapManager:
                 if self.player.feet.colliderect(my_sprite):
                     if verbose:
                         print(f"Miam ! {my_sprite.value} points !!")
-                    my_sprite.explode()
                     if my_sprite.never_eaten:
                         self.master_game.point_counter.points += my_sprite.value
                         my_sprite.never_eaten = False
+                    my_sprite.effect_during_death()
+                elif my_sprite.biginning_of_the_end_time:
+                    my_sprite.display_its_last_secondes()
+
                     # my_sprite.kill()
 
     def get_map(self):
@@ -283,9 +291,11 @@ class MapManager:
         """Fonction pour toutes les maps, appelée à chaque image"""
         self.get_group().update()
         self.check_collision()
+
         # Bouger les NPC
         for npc in self.get_map().npcs:
             npc.move()
+        pygame.display.flip()
 
     def draw(self):
         self.get_group().draw(self.screen)
