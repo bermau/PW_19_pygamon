@@ -13,7 +13,8 @@ from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
 verbose = False
 # seed(1)
-
+global DEBUG
+DEBUG = False
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -57,14 +58,31 @@ class Coin(pygame.sprite.Sprite):
     # Intentionally, there are more 1 point coins than 50 points coins.
     values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
-    def __init__(self, pos):
+    def __init__(self, pos, screen):
         super().__init__()
+        self.never_eaten = True
         self.name = 'coin'
+        self.screen = screen
         self.image = pygame.image.load("../map/coin.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
+        self.counter_for_explosion = 60
+
+    def explode(self ):
+        myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
+        pause_text = str(self.value)
+        coin_text = myfont.render(pause_text, True, 'purple')
+        # self.screen.blit()
+
+        self.counter_for_explosion -= 1
+        if self.counter_for_explosion > 0:
+            self.screen.blit(coin_text, self.rect)
+            pygame.draw.rect(self.screen, 'blue', pygame.Rect(100, 100, 50, 50))
+            pygame.display.flip()
+        else:
+            self.kill()
 
     def move_back(self):
         pass
@@ -149,7 +167,7 @@ class MapManager:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
             elif obj.type == "coin_place":
-                coins.add(Coin((obj.x - 24, obj.y - 24)))  # Valeur mal ajustée
+                coins.add(Coin((obj.x - 24, obj.y - 24), self.screen))  # Valeur mal ajustée
 
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
         water_blocks = []
@@ -229,8 +247,11 @@ class MapManager:
                 if self.player.feet.colliderect(my_sprite):
                     if verbose:
                         print(f"Miam ! {my_sprite.value} points !!")
-                    self.master_game.point_counter.points += my_sprite.value
-                    my_sprite.kill()
+                    my_sprite.explode()
+                    if my_sprite.never_eaten:
+                        self.master_game.point_counter.points += my_sprite.value
+                        my_sprite.never_eaten = False
+                    # my_sprite.kill()
 
     def get_map(self):
         return self.maps[self.current_map]
