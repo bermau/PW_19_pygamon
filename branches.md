@@ -103,7 +103,10 @@ Le NPC est sur l'eau. Or l'eau est perçue comme interdite selon la carte simpli
 
 Pour analyser l'erreur, j'initialise le générateur de nombre aléatoire avec l'instruction `seed()` dans `maps.py`. Je me suis rendu compte que l'erreur portait sur les premiers instants du jeu. 
 
-L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il avait obtenu le point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
+L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il avait parvenu au point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
+
+## 23-03_afficher_la_valeur_des_pieces
+Je veux que, quand on ramasse une pièce, elle disparaisse en affichant sa valeur à sa place pendant quelques instants. J'ai donc modifié la classe `Coin()`. J'ai l'impression qu'après chaque blit ou draw il faut ajouter un nouveau `pygame.display.flip()`, mais je ne sais pas où le placer exactement. J'ai réussi à faire afficher la valeur de la pièce. Il y a un problème de stabilité de son affichage (scintillement, qui est dépendant du nombre d'images par seconde). MERGED sur Devel.
 
 # Les importations : 
 main.py  : 
