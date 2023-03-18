@@ -206,14 +206,10 @@ class MapManager:
 
     def teleport_npcs(self):
         for map_name in self.maps:
-            map_data = self.maps[map_name]
-            for npc in map_data.npcs:
-                npc.areas = self.get_object_by_regex(map_data, r"robin_path\d")
-                npc.areas_nb = len(npc.areas)  # BOUH
-                npc.define_first_target()
-                npc.calculate_move_direction()
-                npc.calculate_dijkstra()
-                npc.teleport_npc()
+            map = self.maps[map_name]
+            for npc in map.npcs:
+                npc.calculate_then_teleport(self, map)
+
 
     def teleport_player(self, player_name):
         point = self.get_object(player_name)
