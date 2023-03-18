@@ -76,7 +76,6 @@ class NPC(Entity):
     def __init__(self, name, map_manager, map_name, screen=None, verbose=False):
 
         super().__init__(name, 500, 550, screen)
-        self.name = name  #
         self.change_animation("left")
         self.map_manager = map_manager
         self.map_name = map_name
@@ -104,6 +103,7 @@ class NPC(Entity):
         self.next_point_rect: pygame.Rect = None  # Son équivalent en pygame.rect
         self.next_dir = None
         # Il faut penser à lancer les méthodes de début après création de NPC:
+        # par self.calculate_then_teleport()
         # par exemple define_first_target()
 
     def calculate_next_area_idx(self):
@@ -180,6 +180,15 @@ class NPC(Entity):
         # Pour une mise au point, utiliser ces lignes
         # self.next_pyrect_idx = 2
         # self.move_direction = 'SE'
+
+    def calculate_then_teleport(self, mam_manager, a_map):
+        regex_path = self.name + r"_path\d"
+        self.areas = mam_manager.get_object_by_regex(a_map, regex_path)
+        self.areas_nb = len(self.areas)
+        self.define_first_target()
+        self.calculate_move_direction()
+        self.calculate_dijkstra()
+        self.teleport_npc()
 
     def teleport_npc(self):
         first_area = self.areas[self.current_area_idx]

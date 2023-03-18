@@ -444,10 +444,10 @@
   <object id="71" type="coin_place" x="265" y="663"/>
  </objectgroup>
  <objectgroup id="11" name="NPC_paths">
-  <object id="72" name="paul_path1" x="208.061" y="47.9848" width="16.5" height="17"/>
-  <object id="73" name="paul_path2" x="369.03" y="48.0152" width="15.6364" height="15.8182"/>
-  <object id="74" name="paul_path3" x="369.03" y="96.697" width="15.6364" height="15.8182"/>
-  <object id="75" name="paul_path4" x="208.197" y="96.2121" width="15.6364" height="15.4545"/>
+  <object id="72" name="paul_path1" x="644.728" y="386.651" width="24.5" height="25"/>
+  <object id="73" name="paul_path2" x="421.03" y="642.349" width="23.6364" height="23.8182"/>
+  <object id="74" name="paul_path3" x="387.53" y="82.197" width="26.1364" height="26.3182"/>
+  <object id="75" name="paul_path4" x="67.697" y="129.545" width="24.6364" height="26.9545"/>
   <object id="76" name="robin_path1" x="452.5" y="611" width="23.3333" height="25.9167"/>
   <object id="77" name="robin_path2" x="387.456" y="258.586" width="25.5" height="26"/>
   <object id="78" name="robin_path3" x="642.25" y="257.333" width="26.6667" height="26.8333"/>
