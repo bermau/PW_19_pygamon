@@ -181,9 +181,11 @@ class NPC(Entity):
         # self.next_pyrect_idx = 2
         # self.move_direction = 'SE'
 
-    def calculate_then_teleport(self, mam_manager, a_map):
+    def calculate_then_teleport(self, map_manager, a_map):
         regex_path = self.name + r"_path\d"
-        self.areas = mam_manager.get_object_by_regex(a_map, regex_path)
+        self.areas = map_manager.get_object_by_regex(a_map, regex_path)
+
+
         self.areas_nb = len(self.areas)
         self.define_first_target()
         self.calculate_move_direction()
