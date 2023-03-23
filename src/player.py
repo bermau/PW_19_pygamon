@@ -76,6 +76,7 @@ class NPC(Entity):
     def __init__(self, name, map_manager, map_name, screen=None, verbose=False):
 
         super().__init__(name, 500, 550, screen)
+
         self.change_animation("left")
         self.map_manager = map_manager
         self.map_name = map_name
@@ -86,6 +87,7 @@ class NPC(Entity):
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
         # J'appelle cette zone une area. Elle est de type pygame.Rect
+        self.targets = None  # de type Coin
         self.areas = []  # Les areas : liste de pygame.Rect
         self.areas_nb = None
         self.current_area_idx = None  # ndint(0, self.nb_areas-1)  # index de area
@@ -183,8 +185,9 @@ class NPC(Entity):
 
     def calculate_then_teleport(self, map_manager, a_map):
         regex_path = self.name + r"_path\d"
-        self.areas = map_manager.get_object_by_regex(a_map, regex_path)
-
+        # self.areas = map_manager.get_object_by_regex(a_map, regex_path)
+        self.targets = [sprite for sprite in map_manager.get_group().sprites() if sprite.name == 'coin']
+        self.areas = [target.rect for target in self.targets]
 
         self.areas_nb = len(self.areas)
         self.define_first_target()
