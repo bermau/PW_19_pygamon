@@ -65,6 +65,7 @@ class Coin(pygame.sprite.Sprite):
         self.screen = screen
         self.image = pygame.image.load("../map/coin.png")
         self.rect = self.image.get_rect()
+        self.center = self.rect.center
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
@@ -194,7 +195,7 @@ class MapManager:
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)  # Pourquoi 5 :
         group.add(self.player)
         # group.add(npcs)
-        group.add(coins)
+        group.add(coins)  ## ??? mais coins est un groupe de Coin ???
         for npc in npcs:
             group.add(npc)
 
@@ -252,8 +253,10 @@ class MapManager:
                         self.master_game.point_counter.points += my_sprite.value
                         my_sprite.never_eaten = False
                     my_sprite.effect_during_death()
+
                 elif my_sprite.biginning_of_the_end_time:
                     my_sprite.display_its_last_secondes()
+
 
                     # my_sprite.kill()
 
