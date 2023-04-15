@@ -65,6 +65,7 @@ class Coin(pygame.sprite.Sprite):
         self.screen = screen
         self.image = pygame.image.load("../map/coin.png")
         self.rect = self.image.get_rect()
+        self.center = self.rect.center
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
@@ -120,8 +121,8 @@ class MapManager:
         self.register_map('world',
                           portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
                                           teleport_point="spawn_from_world")],
-                          # npcs=[  NPC('paul', self, 'world'),
-                          #      NPC('robin', self, 'world')],
+                          npcs=[NPC('paul', self, 'world'),
+                               NPC('robin', self, 'world')],
                           )
 
         # Ajouter un rectangle indicateur dans la carte world.
@@ -194,7 +195,7 @@ class MapManager:
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)  # Pourquoi 5 :
         group.add(self.player)
         # group.add(npcs)
-        group.add(coins)
+        group.add(coins)  ## ??? mais coins est un groupe de Coin ???
         for npc in npcs:
             group.add(npc)
 
@@ -206,14 +207,10 @@ class MapManager:
 
     def teleport_npcs(self):
         for map_name in self.maps:
-            map_data = self.maps[map_name]
-            for npc in map_data.npcs:
-                npc.areas = self.get_object_by_regex(map_data, r"robin_path\d")
-                npc.areas_nb = len(npc.areas)  # BOUH
-                npc.define_first_target()
-                npc.calculate_move_direction()
-                npc.calculate_dijkstra()
-                npc.teleport_npc()
+            map = self.maps[map_name]
+            for npc in map.npcs:
+                npc.calculate_then_teleport(self)
+
 
     def teleport_player(self, player_name):
         point = self.get_object(player_name)
@@ -256,8 +253,10 @@ class MapManager:
                         self.master_game.point_counter.points += my_sprite.value
                         my_sprite.never_eaten = False
                     my_sprite.effect_during_death()
+
                 elif my_sprite.biginning_of_the_end_time:
                     my_sprite.display_its_last_secondes()
+
 
                     # my_sprite.kill()
 

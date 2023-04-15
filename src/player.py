@@ -76,7 +76,7 @@ class NPC(Entity):
     def __init__(self, name, map_manager, map_name, screen=None, verbose=False):
 
         super().__init__(name, 500, 550, screen)
-        self.name = name  #
+
         self.change_animation("left")
         self.map_manager = map_manager
         self.map_name = map_name
@@ -87,6 +87,7 @@ class NPC(Entity):
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
         # J'appelle cette zone une area. Elle est de type pygame.Rect
+        self.targets = None  # de type Coin
         self.areas = []  # Les areas : liste de pygame.Rect
         self.areas_nb = None
         self.current_area_idx = None  # ndint(0, self.nb_areas-1)  # index de area
@@ -104,6 +105,7 @@ class NPC(Entity):
         self.next_point_rect: pygame.Rect = None  # Son équivalent en pygame.rect
         self.next_dir = None
         # Il faut penser à lancer les méthodes de début après création de NPC:
+        # par self.calculate_then_teleport()
         # par exemple define_first_target()
 
     def calculate_next_area_idx(self):
@@ -180,6 +182,20 @@ class NPC(Entity):
         # Pour une mise au point, utiliser ces lignes
         # self.next_pyrect_idx = 2
         # self.move_direction = 'SE'
+
+    def calculate_then_teleport(self, map_manager):
+        """Le NPC évolue dans un environnement (une carte, qui est gérée par le map_manager). Le map_panager est une
+        classe dont l'instance unique gère toutes les cartes."""
+        regex_path = self.name + r"_path\d"
+        # self.areas = map_manager.get_object_by_regex(a_map, regex_path)
+        self.targets = [sprite for sprite in map_manager.get_group().sprites() if sprite.name == 'coin']
+        self.areas = [target.rect for target in self.targets]
+
+        self.areas_nb = len(self.areas)
+        self.define_first_target()
+        self.calculate_move_direction()
+        self.calculate_dijkstra()
+        self.teleport_npc()
 
     def teleport_npc(self):
         first_area = self.areas[self.current_area_idx]
