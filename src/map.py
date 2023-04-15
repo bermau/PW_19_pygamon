@@ -209,7 +209,7 @@ class MapManager:
         for map_name in self.maps:
             map = self.maps[map_name]
             for npc in map.npcs:
-                npc.calculate_then_teleport(self, map)
+                npc.calculate_then_teleport(self)
 
 
     def teleport_player(self, player_name):

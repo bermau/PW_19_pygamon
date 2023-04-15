@@ -183,7 +183,9 @@ class NPC(Entity):
         # self.next_pyrect_idx = 2
         # self.move_direction = 'SE'
 
-    def calculate_then_teleport(self, map_manager, a_map):
+    def calculate_then_teleport(self, map_manager):
+        """Le NPC évolue dans un environnement (une carte, qui est gérée par le map_manager). Le map_panager est une
+        classe dont l'instance unique gère toutes les cartes."""
         regex_path = self.name + r"_path\d"
         # self.areas = map_manager.get_object_by_regex(a_map, regex_path)
         self.targets = [sprite for sprite in map_manager.get_group().sprites() if sprite.name == 'coin']
