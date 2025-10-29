@@ -94,6 +94,7 @@ Résultats :
 | ![world_and_indicators.png](images%2Fworld_and_indicators.png)                                         | ![house_and_indicator.png](images%2Fhouse_and_indicator.png)    |
 |--------------------------------------------------------------------------------------------------------|-----|
 
+
 Un cadre rose (sur toutes les cartes) et un cadre rouge sur la carte 'monde' uniquement. 
 
 ## 23_03_pourquoi_NPC_passe_sur_l_eau
@@ -118,6 +119,11 @@ méthode : self.areas deviennent une liste non plus des Rect des objets Sprite d
 
 Mon modèle est sans doute mal posé. Mes NPC savent se déplacer dans un monde de Rect... mais les pièces (Coins) sont des objets différents. Ce sont des dérivés de Sprites. Je crée une liste parente de Coins. Il faudrait que je comprenne la notion de groupe.
 Pour l'instant les 2 NPC se déplacent entre les pièces, sans les manger.
+
+## fin oct 2025 : création de devel2
+J'élimine la branche devel, qui est trop confuse. Je pousse master et ce que j'ai récupéré de devel. L'ensemble est dans la branche master, sous le tag v0.03. Je le pousse sur github. 
+
+Je crée une branche dérivée de master nommée devel2 (je ne sais pas comment éliminer la branche devel).
 
 # Note sur l'ordre des importations : 
 main.py  : 
