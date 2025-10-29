@@ -55,12 +55,15 @@ class Portal:
 
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
+    """Coin Management.  Gestion des Pièces. En début de partie, la valeur de la pièce n'est pas affichée.
+    Quand le personnage touche la pièce, la valeur de la pièce sera affichéee.
+    """
     # Intentionally, there are more 1 point coins than 50 points coins.
     values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos, screen):
         super().__init__()
-        self.never_eaten = True
+        self.never_touched = True
         self.name = 'coin'
         self.screen = screen
         self.image = pygame.image.load("../map/coin.png")
@@ -70,11 +73,11 @@ class Coin(pygame.sprite.Sprite):
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
         self.counter_for_explosion = 20
-        self.biginning_of_the_end_time = None
+        self.biginning_of_the_end_time = None  # Début de la mort de la pièce
         self.pause_text = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.pause_text, True, 'purple')
-        self.display_time = 1000
+        self.display_time = 1000               # µs of effect
 
     def effect_during_death(self):
         """Action durant quelques secondes"""
@@ -89,6 +92,7 @@ class Coin(pygame.sprite.Sprite):
 
     def display_its_last_secondes(self):
         self.screen.blit(self.coin_text, self.rect)
+
         if pygame.time.get_ticks() - self.biginning_of_the_end_time > self.display_time:
             self.kill()
 
@@ -169,6 +173,7 @@ class MapManager:
         # Ajouter des pièces/coins en tant que sprites.
         coins = pygame.sprite.Group()
 
+        # placement des walls et des coins
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
@@ -245,20 +250,22 @@ class MapManager:
             if my_sprite.name == "player":
                 if my_sprite.feet.collidelist(self.get_walls()) > -1:
                     my_sprite.move_back()
+
             if isinstance(my_sprite, Coin):
-                if self.player.feet.colliderect(my_sprite):
+                coin = my_sprite
+                if self.player.feet.colliderect(coin):
                     if verbose:
-                        print(f"Miam ! {my_sprite.value} points !!")
-                    if my_sprite.never_eaten:
-                        self.master_game.point_counter.points += my_sprite.value
-                        my_sprite.never_eaten = False
-                    my_sprite.effect_during_death()
+                        print(f"Miam ! {coin.value} points !!")
+                    if coin.never_touched:
+                        self.master_game.point_counter.points += coin.value
+                        coin.never_touched = False
+                    coin.effect_during_death()
 
-                elif my_sprite.biginning_of_the_end_time:
-                    my_sprite.display_its_last_secondes()
+                elif coin.biginning_of_the_end_time:
+                    coin.display_its_last_secondes()
 
 
-                    # my_sprite.kill()
+                    # coin.kill()
 
     def get_map(self):
         return self.maps[self.current_map]
