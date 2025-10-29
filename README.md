@@ -21,3 +21,10 @@ Artist : [DoubleLeggy](https://www.deviantart.com/doubleleggy/)
 1) Download this files.
 2) You need Python 3 and some librairies: pygame, pyscroll, pytmx.
 3) start `/src/main.py`.
+
+# About tags of release
+
+* 0.01
+* v0.1
+* v0.2
+* v0.3 : maybe unstable
