@@ -58,8 +58,8 @@ class Coin(pygame.sprite.Sprite):
     """Coin Management.  Gestion des Pièces. En début de partie, la valeur de la pièce n'est pas affichée.
     Quand le personnage touche la pièce, la valeur de la pièce sera affichéee.
     """
-    # Intentionally, there are more 1 point coins than 50 points coins.
-    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
+    # Intentionally, there are more 1 point coins than 50 points coins. Some coins have negative values.
+    values = (-1, -2, -50, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos, screen):
         super().__init__()
@@ -83,7 +83,10 @@ class Coin(pygame.sprite.Sprite):
         self.init_coin()
 
     def init_coin(self):
-        self.coin_icon_name = f"../images/coin_{self.value}.png"
+        if self.value > 0:
+            self.coin_icon_name = f"../images/coin_{self.value}.png"
+        else:
+            self.coin_icon_name = "../images/fine.png"
 
     def effect_during_death(self):
         """Action durant quelques secondes"""
