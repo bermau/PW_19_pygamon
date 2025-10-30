@@ -66,23 +66,30 @@ class Coin(pygame.sprite.Sprite):
         self.never_touched = True
         self.name = 'coin'
         self.screen = screen
-        self.image = pygame.image.load("../map/coin.png")
+        self.image = pygame.image.load("../images/coin.png")
+
         self.rect = self.image.get_rect()
         self.center = self.rect.center
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
+        self.coin_icon_name = None  # icon with a value of the coin
         self.counter_for_explosion = 20
         self.biginning_of_the_end_time = None  # Début de la mort de la pièce
         self.pause_text = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.pause_text, True, 'purple')
-        self.display_time = 1000               # µs of effect
+        self.display_time = 1000               # µs of effect when the coin is touched
+        self.init_coin()
+
+    def init_coin(self):
+        self.coin_icon_name = f"../images/coin_{self.value}.png"
 
     def effect_during_death(self):
         """Action durant quelques secondes"""
         if not self.biginning_of_the_end_time:
             self.biginning_of_the_end_time = pygame.time.get_ticks()
+            self.image = pygame.image.load(self.coin_icon_name)
 
         current_time = pygame.time.get_ticks()
         if current_time - self.biginning_of_the_end_time < self.display_time:
@@ -297,6 +304,8 @@ class MapManager:
         """Fonction pour toutes les maps, appelée à chaque image"""
         self.get_group().update()
         self.check_collision()
+
+        # Ici on pourrait gérer les effets sur les coins en train de mourir.
 
         # Bouger les NPC
         for npc in self.get_map().npcs:
