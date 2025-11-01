@@ -1,3 +1,4 @@
+import os
 import re
 from dataclasses import dataclass
 from pprint import pprint
@@ -7,6 +8,7 @@ import pyscroll
 import pytmx
 from random import randint, seed
 
+
 from src.player import NPC
 
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
@@ -15,6 +17,8 @@ verbose = False
 # seed(1)
 global DEBUG
 DEBUG = False
+
+pygame.mixer.init()
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -53,6 +57,35 @@ class Portal:
     teleport_point: str
 
 
+def play_sound_(file_path=None):
+    """Play an audio file as a buffered sound sample
+
+    :param str file_path: audio file (default data/secosmic_low.wav)
+    """
+    # choose a desired audio format
+    pygame.mixer.init(11025)  # raises exception on fail
+
+    # load the sound
+    sound = pygame.mixer.Sound(file_path)
+
+    # start playing
+    print("Playing Sound...")
+    channel = sound.play()
+
+    # poll until finished
+    while channel.get_busy():  # still playing
+        print("  ...still going...")
+        pygame.time.wait(1000)
+    print("...Finished")
+
+REP = os.getcwd()
+
+# Init des sons
+sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data" )
+coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "whiff.wav"))
+fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "boom.wav"))
+
+
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
     """Coin Management.  Gestion des Pièces. En début de partie, la valeur de la pièce n'est pas affichée.
@@ -60,6 +93,7 @@ class Coin(pygame.sprite.Sprite):
     """
     # Intentionally, there are more 1 point coins than 50 points coins. Some coins have negative values.
     values = (-1, -2, -50, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
+    # values = (-1, -2, -50, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -5, -5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos, screen):
         super().__init__()
@@ -79,7 +113,7 @@ class Coin(pygame.sprite.Sprite):
         self.pause_text = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.pause_text, True, 'purple')
-        self.display_time = 1000               # µs of effect when the coin is touched
+        self.display_time = 3000               # µs of effect when the coin is touched
         self.init_coin()
 
     def init_coin(self):
@@ -92,6 +126,12 @@ class Coin(pygame.sprite.Sprite):
         """Action durant quelques secondes"""
         if not self.biginning_of_the_end_time:
             self.biginning_of_the_end_time = pygame.time.get_ticks()
+
+            if self.value > 0:
+                coin_sound.play()
+            else:
+                fine_sound.play()
+
             self.image = pygame.image.load(self.coin_icon_name)
 
         current_time = pygame.time.get_ticks()
@@ -273,8 +313,6 @@ class MapManager:
 
                 elif coin.biginning_of_the_end_time:
                     coin.display_its_last_secondes()
-
-
                     # coin.kill()
 
     def get_map(self):

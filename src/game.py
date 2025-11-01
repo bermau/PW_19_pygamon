@@ -13,6 +13,9 @@ lib_drawing_tools.display = False
 class Game:
     def __init__(self):
         pygame.init()
+        # Init le son
+
+        # pygame.mixer.init()
 
         # Créer la fenêtre du jeu
         self.screen = pygame.display.set_mode((800, 800))
