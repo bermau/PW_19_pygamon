@@ -8,9 +8,7 @@ import pyscroll
 import pytmx
 from random import randint, seed
 
-
 from src.player import NPC
-
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
 verbose = False
@@ -186,7 +184,8 @@ class MapManager:
                           )
 
         # Ajouter un rectangle indicateur dans la carte world.
-        # self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
+        # Nécessite lib_drawing_tools.display = True
+        self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 3)
 
         # Enregistrer les autres cartes.
         self.register_map('house',

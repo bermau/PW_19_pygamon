@@ -248,7 +248,7 @@ class DijkstraManager:
 def pyrect_to_point(tmx_data, area, reduction_factor):
     # area is a Pygame.rect
     # Attention : le Point et area n'ont pas le même sens d'orientation :
-    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    # reduction factor : un multiple de la taille des tuiles (donc général 16, 32...)
     area_center = area.center   # (x : décalage vers droite
                                 #  , y : décalage vers bas)
     # Point a une orientation de type Numpy, Pandas, etc.
