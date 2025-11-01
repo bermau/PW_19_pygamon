@@ -87,7 +87,6 @@ class NPC(Entity):
         self.debug_count = 0
         self.move_direction = None  # Direction générale du mouvement ('SE', 'NE', 'SW', 'NW')
 
-
         self.indic = []  # Liste d'indicateurs de débogage
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
@@ -121,6 +120,7 @@ class NPC(Entity):
                 break
 
     def modify_speed(self):
+        """Modifie la vitesse de façon pseudo-aléatoire"""
         self.speed = self.speed + randint(-1, 1)
         if self.speed == 0:
             self.speed = 1
@@ -148,7 +148,8 @@ class NPC(Entity):
         if verbose:
             print(f"Nouvelle cible : {self.next_area_idx}, direction : {self.move_direction}")
 
-    def calculate_dijkstra(self, verbose=False):
+
+    def calculate_dijkstra(self, verbose=0):
         """Lit la carte simplifiée.
         L'algorithme utilise une version réduite de la carte. La réduction est de 1 ou 2 fois la taille des
         tuiles.
@@ -167,10 +168,9 @@ class NPC(Entity):
 
         if verbose:
             print(f"Il faut aller du point {start_point} au point {end_point}")
-        self.dijk.dijkstra(start_point, verbose=0)
+        self.dijk.dijkstra(start_point, verbose=verbose)
 
-        self.dijk.format_path(start_point, end_point, verbose=True)
-
+        self.dijk.format_path(start_point, end_point, verbose=verbose)
         self.prev_point = start_point
         self.dijk.give_next_instruction()  # IMPORTANT : on élimine la dernière valeur
         self.next_point, self.next_dir = self.dijk.give_next_instruction()
@@ -178,6 +178,7 @@ class NPC(Entity):
         if verbose:
             print("Fin de calcul du Dijkstra")
             print(f"{self.next_dir} point_actuel: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
+
 
     def define_first_target(self):
         self.current_area_idx = 0  # index de area
@@ -218,7 +219,7 @@ class NPC(Entity):
 
     def move_dij(self):
         """Mouvement automatique. Algorithme type Djikstra à ma façon.
-        Cette fonction est en cours d'écriture"""
+        Mon implémentation n'est pas optimale !"""
         sens = self.next_dir
         if sens == 'R':
             self.change_animation('right')

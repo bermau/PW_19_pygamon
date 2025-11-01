@@ -97,7 +97,9 @@ class DijkstraManager:
         self.print_distances()
 
     def format_path(self, source_node, dest_node, verbose=False):
-        """Return the shortest path between 2 nodes"""
+        """Return the shortest path between 2 nodes
+        update self.path
+        """
         node = dest_node
         path = []
 
@@ -120,7 +122,8 @@ class DijkstraManager:
             node = next_point
         path.append((node, None))
 
-        verbose = True
+        self.path = path
+
         if verbose:
             print(f"Pour aller du node {source_node} au node {dest_node}")
             print(f"Path from {source_node} to {dest_node} is : ")
@@ -130,8 +133,11 @@ class DijkstraManager:
                     print(f" <--- ", end='')
                 else:
                     print("\nTotal cost : ", self.distance[dest_node.x][dest_node.y])
-        self.path = path
-        print(self.path)
+        if verbose:
+            print(path)
+        return path
+
+
 
     def give_next_instruction(self):
         if self.path:
@@ -139,10 +145,10 @@ class DijkstraManager:
         else:
             return (None, None)
 
-    def node_with_min_distance(self, p):
+    def node_with_min_distance(self, p, verbose=False):
         """Doit retourner un point et sa direction
         Ce point est non déjà décrit. et son accès est le plus faible autres frères."""
-        verbose = False
+
         local_min = MAX
         best_index = None
         best_direction = None
@@ -240,9 +246,9 @@ class DijkstraManager:
             if self.all_points_are_explored() or loop_i > 300:
                 break
             u = self.choose_non_visited_rnd_point()
-
-        print(f"Tout semble exploré après {loop_i} passages.")
-        self.print_distances()
+        if verbose:
+            print(f"Tout semble exploré après {loop_i} passages.")
+            self.print_distances()
 
 
 def pyrect_to_point(tmx_data, area, reduction_factor):
