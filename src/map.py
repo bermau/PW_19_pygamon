@@ -81,6 +81,12 @@ def play_sound_(file_path=None):
 REP = os.getcwd()
 
 # Init des sons
+# music :
+MUSIC = os.path.join("../sounds/080415pianobgm3popver.ogg")
+pygame.mixer.music.load(MUSIC)
+pygame.mixer.music.play(100)
+
+# Sound (bing/slap....)
 sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data" )
 coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "whiff.wav"))
 fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "boom.wav"))
