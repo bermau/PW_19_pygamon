@@ -56,12 +56,12 @@ class Entity(pygame.sprite.Sprite):
         self.position[1] += self.speed
 
     def update(self):
-        self.rect.topleft = self.position
+        self.rect.topleft = tuple(self.position)
         self.feet.midbottom = self.rect.midbottom
 
     def move_back(self):
         self.position = self.old_position
-        self.rect.topleft = self.position
+        self.rect.topleft = tuple(self.position)
         self.feet.midbottom = self.rect.midbottom
 
     def get_image(self, x, y):
