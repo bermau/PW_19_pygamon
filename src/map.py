@@ -116,9 +116,9 @@ class Coin(pygame.sprite.Sprite):
         self.coin_icon_name = None  # icon with a value of the coin
         self.counter_for_explosion = 20
         self.biginning_of_the_end_time = None  # Début de la mort de la pièce
-        self.pause_text = str(self.value)
+        self.coin_text_str = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
-        self.coin_text = myfont.render(self.pause_text, True, 'purple')
+        self.coin_text = myfont.render(self.coin_text_str, True, 'purple')
         self.display_time = 3000               # µs of effect when the coin is touched
         self.init_coin()
 
@@ -147,8 +147,8 @@ class Coin(pygame.sprite.Sprite):
             self.kill()
 
     def display_its_last_secondes(self):
+        """Display the coin value, for a few seconds"""
         self.screen.blit(self.coin_text, self.rect)
-
         if pygame.time.get_ticks() - self.biginning_of_the_end_time > self.display_time:
             self.kill()
 
