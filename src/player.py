@@ -21,6 +21,7 @@ class Entity(pygame.sprite.Sprite):
         self.position = [x, y]
         self.screen = screen if screen else None
 
+        self.animation = 'down'   #
         # Mon sprite mesure 32 * 32
         self.images = {
             'down': self.get_image(0, 0),
@@ -36,9 +37,11 @@ class Entity(pygame.sprite.Sprite):
         self.old_position = self.position.copy()
 
     def change_animation(self, attitude):
-        # ('up', 'down', 'left', 'right')
-        self.image = self.images[attitude]
-        self.image.set_colorkey((0, 0, 0))
+        # change image if necessary ('up', 'down', 'left', 'right')
+        if attitude != self.animation:
+            self.image = self.images[attitude]
+            self.image.set_colorkey((0, 0, 0))
+            self.animation = attitude
 
     def move_right(self):
         self.position[0] += self.speed
@@ -82,7 +85,9 @@ class NPC(Entity):
         self.map_name = map_name
         self.verbose = verbose
         self.debug_count = 0
-        self.move_direction = None
+        self.move_direction = None  # Direction générale du mouvement ('SE', 'NE', 'SW', 'NW')
+
+
         self.indic = []  # Liste d'indicateurs de débogage
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
@@ -99,10 +104,10 @@ class NPC(Entity):
 
         # les points de la carte simplifiée pour résoudre la promenade/ walk.        
         self.djik = None  # Objet pour résoudre le chemin selon Dijkstra.
-        # Les points ci dessous sont utilisé pour guider le mouvement dans la promenade.
-        self.prev_point = None  # Le Point d'où lon vient. Sera initialisé par init_dijkstra
+        # Les points ci-dessous sont utilisés pour guider le mouvement dans la promenade.
+        self.prev_point = None  # Le Point d'où lon vient. Sera initialisé par init_dijkstra()
         self.next_point = None  # Le Point où l'on va
-        self.next_point_rect: pygame.Rect = None  # Son équivalent en pygame.rect
+        self.next_point_rect: None  # Son équivalent en pygame.rect  pygame.Rect
         self.next_dir = None
         # Il faut penser à lancer les méthodes de début après création de NPC:
         # par self.calculate_then_teleport()
@@ -216,12 +221,16 @@ class NPC(Entity):
         Cette fonction est en cours d'écriture"""
         sens = self.next_dir
         if sens == 'R':
+            self.change_animation('right')
             self.move_right()
         elif sens == 'L':
+            self.change_animation('left')
             self.move_left()
         elif sens == 'B':
+            self.change_animation('down')
             self.move_down()
         elif sens == 'T':
+            self.change_animation('up')
             self.move_up()
         elif sens is None:
             pass
