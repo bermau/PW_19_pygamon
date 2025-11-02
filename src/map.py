@@ -367,7 +367,8 @@ class MapManager:
 
     def draw(self):
         self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
+        # La ligne suivante est à l'origine du décalage de l'affichage du texte.
+        # self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
         # On ajoute des indicateurs pour debugger certaines cartes
         if self.current_map == 'world':
             self_maps_world_ = self.maps['world']
