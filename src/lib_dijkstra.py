@@ -12,8 +12,8 @@ class Point:
         self.x = x
         self.y = y
 
-    def __eq__(self, other):
-        return self.x == other.x and self.y == other.y
+    def __eq__(self, other_point):
+        return self.x == other_point.x and self.y == other_point.y
 
     def __str__(self):
         return f"Point ({self.x}, {self.y})"
