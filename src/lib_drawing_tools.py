@@ -2,7 +2,7 @@
 
 import pygame
 
-display = False
+display = False   # peut être modifié dans game.py pour un usage plus général
 
 
 class DebugRect:
