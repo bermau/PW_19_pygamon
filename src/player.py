@@ -175,7 +175,7 @@ class NPC(Entity):
 
         if verbose:
             print(f"Il faut aller du point {start_point} au point {end_point}")
-        self.dijk.dijkstra(start_point, verbose=verbose)
+        self.dijk.dijkstra(start_point, verbose=verbose)  # OK
         self.dijk.format_path(start_point, end_point, verbose=verbose)
         self.prev_point = start_point
         self.dijk.give_next_instruction()  # IMPORTANT : on élimine la dernière valeur

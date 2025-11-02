@@ -13,7 +13,7 @@ from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
 verbose = True
 # seed(1)
-START_WITH_MAP = 'dungeon'   # OK : 'dungeon', 'world', mais BUG avec 'house'
+START_WITH_MAP = 'garden'   # OK : 'dungeon', 'world', mais BUG avec 'house'
 
 pygame.mixer.init()
 
@@ -170,7 +170,7 @@ class MapManager:
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
-        self.verbose = True
+        self.verbose = verbose
         self.current_map = START_WITH_MAP
 
         # Portal indique comment entrer dans un autre monde.
@@ -271,6 +271,8 @@ class MapManager:
         # Fabriquer une carte simplifiée de 0 et de 1 pour les walls
         # Cette carte est fausse pour "house".
         simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
+        print(f"représentation  simplifiée de la carte pour {map_name}")
+        show_simple_page(simple_map)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, tmx_data, simple_map, walls, group, portals, npcs)
@@ -278,8 +280,7 @@ class MapManager:
     def teleport_npcs(self):
         for map_name in self.maps:
             print(f"Je traite le monde {map_name}")
-            map = self.maps[map_name]
-            for npc in map.npcs:
+            for npc in self.maps[map_name].npcs:
                 print(f"Je téléporte {npc.name}")
                 npc.calculate_then_teleport(self)
 
@@ -291,7 +292,8 @@ class MapManager:
         self.player.save_location()
 
     def define_npcs_debuggers(self):
-        for npc in self.maps['world'].npcs:
+        verbose = False
+        for npc in self.maps['garden'].npcs:
             for ar in npc.areas:
                 if verbose:
                     print(f"Je traite {ar} pour {npc} de {npc.areas}")
@@ -371,6 +373,7 @@ class MapManager:
         pygame.display.flip()
 
     def draw(self):
+        # Dessine la carte
         self.get_group().draw(self.screen)
         # La ligne suivante est à l'origine du décalage de l'affichage du texte.
         # self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
@@ -386,7 +389,7 @@ class MapManager:
                     one_indic.render(self.screen)
 
 
-def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
+def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor) -> list:
     """Deduce a 2 dimensions array from a tmx map"""
     bin_map = []
     size = tmx_data.tilewidth
@@ -405,7 +408,26 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
             else:
                 line_map.append(0)
         bin_map.append(line_map)
-    if verbose:
-        pprint(bin_map)
-        print(f"build_simple_map_from_tmx() : La carte est ci-dessus : ! ")
+
     return bin_map
+
+def show_simple_page(map):
+    """
+    print a semi-graphicaldisplay of the map
+
+    :param map: a simple map (list of list of (0 or 1)
+    :return:
+    """
+    g_map = []
+    for i, row in enumerate(map):
+        line = ''
+        for j, value in enumerate(row):
+            if value == 1:
+                translation = 'ZZ'
+            elif value == 0:
+                translation = '  '
+            else:
+                print (f"Erreur sur la valeur en rangée ={i}, colonne = {j} : {value}" )
+            line += translation
+        g_map.append(line)
+    pprint(g_map)
