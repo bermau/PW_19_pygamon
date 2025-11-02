@@ -7,7 +7,7 @@ from counter import Counter
 from lib_drawing_tools import DebugRect
 import lib_drawing_tools
 
-lib_drawing_tools.display = False
+lib_drawing_tools.display = True
 
 
 class Game:
@@ -23,7 +23,7 @@ class Game:
         # Générer un joueur
         self.player = Player(0, 0)
         # Gestionnaire de cartes
-        self.map_manager = MapManager(self, self.screen, self.player)
+        self.map_manager = MapManager(self, self.screen, self.player, verbose=True)
         # Un compteur
         self.point_counter = Counter()
         # Une zone à encadrer pour debugger
