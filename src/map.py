@@ -316,9 +316,9 @@ class MapManager:
             if isinstance(my_sprite, Coin):
                 coin = my_sprite
                 if self.player.feet.colliderect(coin):
-                    if verbose:
-                        print(f"Miam ! {coin.value} points !!")
                     if coin.never_touched:
+                        if verbose:
+                            print(f"Miam ! {coin.value} points !!")
                         self.master_game.point_counter.points += coin.value
                         coin.never_touched = False
                     coin.effect_during_death()
