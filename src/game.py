@@ -19,7 +19,7 @@ class Game:
 
         # Créer la fenêtre du jeu
         self.screen = pygame.display.set_mode((800, 800))
-        pygame.display.set_caption("Dinosaure aventure")
+        pygame.display.set_caption("La Grande Aventure")
         # Générer un joueur
         self.player = Player(0, 0)
         # Gestionnaire de cartes
