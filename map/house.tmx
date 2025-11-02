@@ -127,10 +127,10 @@
   <object id="7" type="collision" x="1.83465" y="386.194" width="77.0554" height="11.9252"/>
   <object id="8" type="collision" x="2.75198" y="274.28" width="188.969" height="7.33861"/>
   <object id="9" type="collision" x="1.83465" y="6.42128" width="11.9252" height="375.186"/>
-  <object id="10" name="spawn_from_world" x="144.24" y="342.43">
+  <object id="10" name="spawn_from_garden" x="144.24" y="342.43">
    <point/>
   </object>
-  <object id="11" name="enter_world" x="81.642" y="367.848" width="31.1891" height="29.3544"/>
+  <object id="11" name="enter_garden" x="81.642" y="367.848" width="31.1891" height="29.3544"/>
   <object id="14" name="enter_dungeon" x="283.912" y="180.713" width="28.4371" height="17.8879"/>
   <object id="15" name="spawn_from_dungeon" x="309.139" y="131.636">
    <point/>

@@ -175,21 +175,26 @@ class MapManager:
 
         # Portal indique comment entrer dans un autre monde.
         # Attention le from_world doit absolument avoir tous les origin_points.
-        self.register_map('world',
-                          portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
-                                          teleport_point="spawn_from_world")],
-                          npcs=[NPC('paul', self, 'world'),
-                               NPC('robin', self, 'world')],
+        self.register_map('garden',
+                          portals=[
+                              Portal(from_world="garden", origin_point='enter_house', target_world="house",
+                                     teleport_point="spawn_from_garden"),
+                              Portal(from_world="garden", origin_point='enter_dungeon', target_world="dungeon",
+                                     teleport_point="spawn_from_garden")
+                          ],
+
+                          npcs=[NPC('paul', self, 'garden'),
+                               NPC('robin', self, 'garden')],
                           )
 
         # Ajouter un rectangle indicateur dans la carte world.
         # Nécessite lib_drawing_tools.display = True
-        self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 3)
+        self.maps['garden'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 3)
 
         # Enregistrer les autres cartes.
         self.register_map('house',
                           portals=[
-                              Portal(from_world='house', origin_point='enter_world', target_world='world',
+                              Portal(from_world='house', origin_point='enter_garden', target_world='garden',
                                      teleport_point="spawn_from_house"),
                               Portal(from_world='house', origin_point='enter_dungeon', target_world='dungeon',
                                      teleport_point="spawn_from_house")
@@ -199,7 +204,7 @@ class MapManager:
                           portals=[
                               Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
                                      teleport_point="spawn_from_dungeon"),
-                              Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
+                              Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
                                      teleport_point="spawn_from_dungeon")
                           ], verbose= True)
         print("FIN DEFINITION DES CARTES")
