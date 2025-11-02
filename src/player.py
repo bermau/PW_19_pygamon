@@ -12,6 +12,13 @@ verbose = False
 class Entity(pygame.sprite.Sprite):
 
     def __init__(self, name, x, y, screen=None):
+        """
+
+        :param name: str
+        :param x: int pixels
+        :param y: int pixels
+        :param screen:
+        """
         super().__init__()
         self.name = name
         self.sprite_sheet = pygame.image.load(f'../sprites/{name}.png')
@@ -128,7 +135,7 @@ class NPC(Entity):
             self.speed = 3
 
     def calculate_move_direction(self):
-        """Algorithme très primaire. Il a besoin de déterminer la direction générale à prendre."""
+        """Algorithme très primaire. Déterminer la direction générale à prendre."""
         target_point = self.areas[self.next_area_idx].center
         feet_point = self.feet.center
 
@@ -169,7 +176,6 @@ class NPC(Entity):
         if verbose:
             print(f"Il faut aller du point {start_point} au point {end_point}")
         self.dijk.dijkstra(start_point, verbose=verbose)
-
         self.dijk.format_path(start_point, end_point, verbose=verbose)
         self.prev_point = start_point
         self.dijk.give_next_instruction()  # IMPORTANT : on élimine la dernière valeur
@@ -190,10 +196,9 @@ class NPC(Entity):
         # self.move_direction = 'SE'
 
     def calculate_then_teleport(self, map_manager):
-        """Le NPC évolue dans un environnement (une carte, qui est gérée par le map_manager). Le map_panager est une
+        """Le NPC évolue dans un environnement (une carte qui est gérée par le map_manager). Le map_panager est une
         classe dont l'instance unique gère toutes les cartes."""
         regex_path = self.name + r"_path\d"
-        # self.areas = map_manager.get_object_by_regex(a_map, regex_path)
         self.targets = [sprite for sprite in map_manager.get_group().sprites() if sprite.name == 'coin']
         self.areas = [target.rect for target in self.targets]
 

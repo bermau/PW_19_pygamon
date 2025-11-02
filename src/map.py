@@ -11,10 +11,9 @@ from random import randint, seed
 from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
-verbose = False
+verbose = True
 # seed(1)
-global DEBUG
-DEBUG = False
+START_WITH_MAP = 'dungeon'   # OK : 'dungeon', 'world', mais BUG avec 'house'
 
 pygame.mixer.init()
 
@@ -154,10 +153,10 @@ class Coin(pygame.sprite.Sprite):
 @dataclass
 class Map:
     name: str
+    tmx_data: pytmx.TiledMap
+    simple_map: list
     walls: list[pygame.Rect]
     group: pyscroll.PyscrollGroup
-    simple_map: list
-    tmx_data: pytmx.TiledMap
     portals: list[Portal]
     npcs: list[NPC]
 
@@ -171,8 +170,8 @@ class MapManager:
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
-        self.verbose = verbose
-        self.current_map = 'world'
+        self.verbose = True
+        self.current_map = START_WITH_MAP
 
         # Portal indique comment entrer dans un autre monde.
         # Attention le from_world doit absolument avoir tous les origin_points.
@@ -202,19 +201,24 @@ class MapManager:
                                      teleport_point="spawn_from_dungeon"),
                               Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
                                      teleport_point="spawn_from_dungeon")
-                          ])
+                          ], verbose= True)
+        print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
-        self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin de la promenade
+        print("FIN TELEPORT PLAYER") # PAS DE BU ICI
+        # Le BUG sur house a lieu dans teleport NPC. Sans doute parce que la carte simple de house est vide.
+        self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin simple de la promenade
+        print("FIN TELEPORT NPC")
         self.define_npcs_debuggers()
 
-    def register_map(self, map_name, portals=None, npcs=None):
+
+    def register_map(self, map_name, portals=None, npcs=None, verbose=False):
         if npcs is None:
             npcs = []
         if portals is None:
             portals = []
         if verbose:
-            print("Registering map", map_name)
+            print(f"register_map() : Registering map '{map_name}'")
 
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
@@ -260,15 +264,18 @@ class MapManager:
             group.add(npc)
 
         # Fabriquer une carte simplifiée de 0 et de 1 pour les walls
+        # Cette carte est fausse pour "house".
         simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
 
         # Créer un objet Map
-        self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
+        self.maps[map_name] = Map(map_name, tmx_data, simple_map, walls, group, portals, npcs)
 
     def teleport_npcs(self):
         for map_name in self.maps:
+            print(f"Je traite le monde {map_name}")
             map = self.maps[map_name]
             for npc in map.npcs:
+                print(f"Je téléporte {npc.name}")
                 npc.calculate_then_teleport(self)
 
 
@@ -374,7 +381,7 @@ class MapManager:
 
 
 def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
-    """Deduce a 2 dimensional array from a tmx map"""
+    """Deduce a 2 dimensions array from a tmx map"""
     bin_map = []
     size = tmx_data.tilewidth
     map_w = tmx_data.width * size
@@ -384,6 +391,8 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
     for i, y in enumerate(range(0 + dec, map_h + dec, steps)):
         line_map = []
         for j, x in enumerate(range(0, map_w, steps)):
+            # pygame.Rect est ci un très petit carré (presque un point) de position x, y
+            # collide list attend des surfaces (Rect) et non pas un point}
             PP = pygame.Rect(x, y, 1, 1)
             if PP.collidelist(walls_block_list) != -1:  # See documentation of colidelist()
                 line_map.append(1)
@@ -392,5 +401,5 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
         bin_map.append(line_map)
     if verbose:
         pprint(bin_map)
-        print("La carte est ci-dessus : ! ")
+        print(f"build_simple_map_from_tmx() : La carte est ci-dessus : ! ")
     return bin_map

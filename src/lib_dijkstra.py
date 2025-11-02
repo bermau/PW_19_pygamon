@@ -6,9 +6,13 @@ import pygame
 
 
 class Point:
+    """Gères les points présentés comme dans un tableau pandas.
+    Point désigne une case de la carte, et non pas des pixels.
+    Point est caractérisé par deux indices, commençant à 0, et gérés comme un tableau Pandas.
+    """
     def __init__(self, x, y):
-        """x : = row, descending
-           y : = col, left to right"""
+        """x : = row, descending, first value equals 0
+           y : = col, left to right, first value equals 0"""
         self.x = x
         self.y = y
 
@@ -33,15 +37,45 @@ class Point:
     def right(self):
         return Point(self.x, self.y + 1)
 
-MAX = 9999
+
+def pyrect_to_point(tmx_data, area, reduction_factor):
+    # area is a Pygame.rect   Attention : le Point et area n'ont pas le même sens d'orientation : Point est géré
+    #           comme dans Pandas, area est géré comme dans pygame.
+    # reduction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    area_center = area.center   # (x : décalage vers droite
+                                #  , y : décalage vers bas)
+    # Point a une orientation de type Numpy, Pandas, etc.
+    tile_size = reduction_factor
+    return Point(area_center[1]//tile_size, area_center[0]// tile_size)
+
+def point_to_pyrect(tmx_data, point: Point, reduction_factor= 32):
+    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    tile_size = reduction_factor
+    return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
+
+
+MAX = 9999   # Max de distance ???
 
 class DijkstraManager:
+    """Ma laborieuse implémentation d'un algorythme de Dijkstra.
+    L'espace est représentée en utilisant une liste de liste d'instances de la classe Point. Penser à la représentation
+    de type Nympy, Pandas.
+    L'espace est représenté sous la forme d'une liste de listes. La première liste représente la ligne du haut de la carte. La dernière liste représente la ligne du bas de la carte.
+    DAns chaque liste, les valeurs représent les représentation de cases de la carte en allant de gauche à droite.
+    Les valeurs sont des 1 ou 0. 1 signifie que la case n'est pas accessible (mur, eau...). 0 indique que la case est
+    libre.
+
+    """
 
     def __init__(self, graph):
+        """
+        : param graph: a list of list of (0 or 1). 1= wall = unaccessible point, 0 = non wall ( accessible point)
+        """
 
         self.graph = graph
         self.row_nb = len(graph)
         self.col_nb = len(graph[0])
+        # Ci-dessous, on crée des listes de listes, ce qui représente un espace rectangulaire
         self.visited = [[False for _ in range(self.col_nb)] for _ in range(self.row_nb)]
         self.distance = [[MAX for _ in range(self.col_nb)] for _ in range(self.row_nb)]
         self.parent = [[None for _ in range(self.col_nb)] for _ in range(self.row_nb)]
@@ -93,12 +127,14 @@ class DijkstraManager:
             print()
 
     def pSol(self):
-        print("**** oSol ****")
+        print("**** pSol ****")
         self.print_distances()
 
     def format_path(self, source_node, dest_node, verbose=False):
         """Return the shortest path between 2 nodes
         update self.path
+
+        Cette méthode est à appeler après dijkstra.
         """
         node = dest_node
         path = []
@@ -250,21 +286,6 @@ class DijkstraManager:
             print(f"Tout semble exploré après {loop_i} passages.")
             self.print_distances()
 
-
-def pyrect_to_point(tmx_data, area, reduction_factor):
-    # area is a Pygame.rect
-    # Attention : le Point et area n'ont pas le même sens d'orientation :
-    # reduction factor : un multiple de la taille des tuiles (donc général 16, 32...)
-    area_center = area.center   # (x : décalage vers droite
-                                #  , y : décalage vers bas)
-    # Point a une orientation de type Numpy, Pandas, etc.
-    tile_size = reduction_factor
-    return Point(area_center[1]//tile_size, area_center[0]// tile_size)
-
-def point_to_pyrect(tmx_data, point: Point, reduction_factor = 32):
-    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
-    tile_size = reduction_factor
-    return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
 
 if __name__ == '__main__':
     # Explication : chaque ligne indique le cout pour passer d'une ligne à la colonne.
