@@ -7,7 +7,7 @@ from counter import Counter
 from lib_drawing_tools import DebugRect
 import lib_drawing_tools
 
-lib_drawing_tools.display = True
+lib_drawing_tools.display = False
 
 
 class Game:
