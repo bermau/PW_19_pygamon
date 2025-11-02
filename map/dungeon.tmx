@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="50" height="40" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="70">
+<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="50" height="40" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="72">
  <tileset firstgid="1" source="tileset_dungeon.tsx"/>
  <layer id="1" name="floor" width="50" height="40">
   <data encoding="csv">
@@ -176,6 +176,9 @@
   <object id="67" type="collision" x="144" y="97" width="15" height="63"/>
   <object id="68" type="collision" x="147" y="95" width="254" height="19"/>
   <object id="69" type="collision" x="386" y="99" width="17" height="64"/>
+  <object id="71" name="player" x="84" y="569">
+   <point/>
+  </object>
  </objectgroup>
  <layer id="4" name="decorations" width="50" height="40">
   <data encoding="csv">
