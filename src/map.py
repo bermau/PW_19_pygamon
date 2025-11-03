@@ -46,12 +46,7 @@ def groups_in_list(lst, code='X', blank=' '):
     return walls
 
 
-@dataclass
-class Portal:
-    from_world: str
-    origin_point: str
-    target_world: str
-    teleport_point: str
+
 
 
 def play_sound_(file_path=None):
@@ -88,6 +83,12 @@ sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame
 coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "whiff.wav"))
 fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "boom.wav"))
 
+@dataclass
+class Portal:
+    from_world: str
+    origin_point: str
+    target_world: str
+    teleport_point: str
 
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
@@ -265,6 +266,7 @@ class MapManager:
         group.add(self.player)
         # group.add(npcs)
         group.add(coins)  ## ??? mais coins est un groupe de Coin ???
+        # à group, qui contient déjà un groupe de pièce,  on ajout les NPC
         for npc in npcs:
             group.add(npc)
 
@@ -324,10 +326,20 @@ class MapManager:
                 coin = my_sprite
                 if self.player.feet.colliderect(coin):
                     if coin.never_touched:
-                        if verbose:
-                            print(f"Miam ! {coin.value} points !!")
+                        if coin.value>=0:
+                            if verbose :
+                                print(f"Miam ! {coin.value} points !!")
+                                # jouer un son !
+                        else:
+                            if verbose:
+                                print("Mince ! une amende")
                         self.master_game.point_counter.points += coin.value
                         coin.never_touched = False
+                        # Bonus si toutes les pièces de la carte ont été ramassées
+                        if len(self.get_untouched_coins()) == 0:
+                            if verbose:
+                                print("Bonus de 100 points")
+                            self.master_game.point_counter.points += 100
                     coin.effect_during_death()
 
                 elif coin.biginning_of_the_end_time:
@@ -339,6 +351,17 @@ class MapManager:
 
     def get_group(self):
         return self.get_map().group
+
+    def get_all_coins(self):
+        """return all coins of current map"""
+        sprite_list_of_current_map = self.get_group()._spritelist
+        return [sprite for sprite in sprite_list_of_current_map if sprite.name == 'coin']
+
+    def get_untouched_coins(self):
+        """return the list of untouched coins of current map"""
+        sprite_list_of_current_map = self.get_group()._spritelist
+        return [sprite for sprite in sprite_list_of_current_map if sprite.name == 'coin' and sprite.never_touched == True]
+
 
     def get_walls(self):
         return self.get_map().walls
