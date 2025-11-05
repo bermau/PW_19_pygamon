@@ -216,7 +216,7 @@ class MapManager:
         print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
-        print("FIN TELEPORT PLAYER") # PAS DE BU ICI
+        print("FIN TELEPORT PLAYER")  # PAS DE BUG ICI
         # Le BUG sur house a lieu dans teleport NPC. Sans doute parce que la carte simple de house est vide.
         self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin simple de la promenade
         print("FIN TELEPORT NPC")
@@ -272,7 +272,7 @@ class MapManager:
         group.add(self.player)
         # group.add(npcs)
         group.add(coins)  ## ??? mais coins est un groupe de Coin ???
-        # à group, qui contient déjà un groupe de pièce,  on ajout les NPC
+        # à group, qui contient déjà un groupe de pièce, on ajoute les NPC
         for npc in npcs:
             group.add(npc)
 
