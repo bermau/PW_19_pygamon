@@ -11,7 +11,6 @@ from random import randint, seed, random
 from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
-# 
 PERCENTAGE_OF_SELECTED_COINS = 0.5
 
 verbose = True
