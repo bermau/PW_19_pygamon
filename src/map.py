@@ -6,16 +6,20 @@ from pprint import pprint
 import pygame
 import pyscroll
 import pytmx
-from random import randint, seed
+from random import randint, seed, random
 
 from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 
+# 
+PERCENTAGE_OF_SELECTED_COINS = 0.5
+
 verbose = True
 # seed(1)
-START_WITH_MAP = 'garden'   # OK : 'dungeon', 'world', mais BUG avec 'house'
+START_WITH_MAP = 'garden'  # OK : 'dungeon', 'world', mais BUG avec 'house'
 
 pygame.mixer.init()
+
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -46,9 +50,6 @@ def groups_in_list(lst, code='X', blank=' '):
     return walls
 
 
-
-
-
 def play_sound_(file_path=None):
     """Play an audio file as a buffered sound sample
 
@@ -70,6 +71,7 @@ def play_sound_(file_path=None):
         pygame.time.wait(1000)
     print("...Finished")
 
+
 REP = os.getcwd()
 
 # Init des sons
@@ -79,9 +81,10 @@ pygame.mixer.music.load(MUSIC)
 pygame.mixer.music.play(100)
 
 # Sound (bing/slap....)
-sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data" )
+sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data")
 coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "whiff.wav"))
 fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "boom.wav"))
+
 
 @dataclass
 class Portal:
@@ -90,6 +93,7 @@ class Portal:
     target_world: str
     teleport_point: str
 
+
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
     """Coin Management.  Gestion des Pièces. En début de partie, la valeur de la pièce n'est pas affichée.
@@ -97,6 +101,7 @@ class Coin(pygame.sprite.Sprite):
     """
     # Intentionally, there are more 1 point coins than 50 points coins. Some coins have negative values.
     values = (-1, -2, -50, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
+
     # values = (-1, -2, -50, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -5, -5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos, screen):
@@ -117,7 +122,7 @@ class Coin(pygame.sprite.Sprite):
         self.coin_text_str = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.coin_text_str, True, 'purple')
-        self.display_time = 3000               # µs of effect when the coin is touched
+        self.display_time = 3000  # µs of effect when the coin is touched
         self.init_coin()
 
     def init_coin(self):
@@ -185,7 +190,7 @@ class MapManager:
                           ],
 
                           npcs=[NPC('paul', self, 'garden'),
-                               NPC('robin', self, 'garden')],
+                                NPC('robin', self, 'garden')],
                           )
 
         # Ajouter un rectangle indicateur dans la carte world.
@@ -207,7 +212,7 @@ class MapManager:
                                      teleport_point="spawn_from_dungeon"),
                               Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
                                      teleport_point="spawn_from_dungeon")
-                          ], verbose= True)
+                          ], verbose=True)
         print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
@@ -216,7 +221,6 @@ class MapManager:
         self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin simple de la promenade
         print("FIN TELEPORT NPC")
         self.define_npcs_debuggers()
-
 
     def register_map(self, map_name, portals=None, npcs=None, verbose=False):
         if npcs is None:
@@ -242,7 +246,9 @@ class MapManager:
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-            elif obj.type == "coin_place":
+            # On implémente une fraction des pièces.
+            elif obj.type == "coin_place" and random() > PERCENTAGE_OF_SELECTED_COINS:
+
                 coins.add(Coin((obj.x - 24, obj.y - 24), self.screen))  # Valeur mal ajustée
 
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
@@ -286,7 +292,6 @@ class MapManager:
                 print(f"Je téléporte {npc.name}")
                 npc.calculate_then_teleport(self)
 
-
     def teleport_player(self, player_name):
         point = self.get_object(player_name)
         self.player.position[0] = point.x - 16
@@ -326,8 +331,8 @@ class MapManager:
                 coin = my_sprite
                 if self.player.feet.colliderect(coin):
                     if coin.never_touched:
-                        if coin.value>=0:
-                            if verbose :
+                        if coin.value >= 0:
+                            if verbose:
                                 print(f"Miam ! {coin.value} points !!")
                                 # jouer un son !
                         else:
@@ -360,8 +365,8 @@ class MapManager:
     def get_untouched_coins(self):
         """return the list of untouched coins of current map"""
         sprite_list_of_current_map = self.get_group()._spritelist
-        return [sprite for sprite in sprite_list_of_current_map if sprite.name == 'coin' and sprite.never_touched == True]
-
+        return [sprite for sprite in sprite_list_of_current_map if
+                sprite.name == 'coin' and sprite.never_touched == True]
 
     def get_walls(self):
         return self.get_map().walls
@@ -434,6 +439,7 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor) -> l
 
     return bin_map
 
+
 def show_simple_page(map):
     """
     print a semi-graphicaldisplay of the map
@@ -450,7 +456,7 @@ def show_simple_page(map):
             elif value == 0:
                 translation = '  '
             else:
-                print (f"Erreur sur la valeur en rangée ={i}, colonne = {j} : {value}" )
+                print(f"Erreur sur la valeur en rangée ={i}, colonne = {j} : {value}")
             line += translation
         g_map.append(line)
     pprint(g_map)
