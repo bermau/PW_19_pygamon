@@ -208,6 +208,7 @@ class MapManager:
         if verbose:
             print(f"register_map() : Registering map '{map_name}'")
 
+
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
         map_data = pyscroll.data.TiledMapData(tmx_data)
