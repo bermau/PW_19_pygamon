@@ -15,7 +15,7 @@ PERCENTAGE_OF_SELECTED_COINS = 0.5
 
 verbose = True
 # seed(1)
-START_WITH_MAP = 'garden'  # OK : 'dungeon', 'world', mais BUG avec 'house'
+START_WITH_MAP = 'dungeon'  # OK : 'dungeon', 'garden', mais BUG avec 'house'
 
 pygame.mixer.init()
 
@@ -184,12 +184,13 @@ class MapManager:
                           ])
 
         self.register_map('dungeon',
-                          portals=[
-                              Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
-                                     teleport_point="spawn_from_dungeon"),
-                              Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
-                                     teleport_point="spawn_from_dungeon")
-                          ], verbose=True)
+                          # portals=[
+                          #     Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
+                          #            teleport_point="spawn_from_dungeon"),
+                          #     Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
+                          #            teleport_point="spawn_from_dungeon")
+                          # ],
+                          verbose=True)
         print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
