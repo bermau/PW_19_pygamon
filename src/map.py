@@ -15,7 +15,7 @@ PERCENTAGE_OF_SELECTED_COINS = 0.5
 
 verbose = True
 # seed(1)
-START_WITH_MAP = 'dungeon'  # OK : 'dungeon', 'garden', mais BUG avec 'house'
+START_WITH_MAP = 'garden'  # OK : 'dungeon', 'garden', mais BUG avec 'house'
 
 pygame.mixer.init()
 
