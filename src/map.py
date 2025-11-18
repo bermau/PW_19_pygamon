@@ -6,6 +6,7 @@ from pprint import pprint
 import pygame
 import pyscroll
 import pytmx
+from pytmx import TiledTileLayer
 from random import randint, seed
 
 from src.player import NPC
@@ -150,6 +151,12 @@ class Coin(pygame.sprite.Sprite):
             self.kill()
 
 
+def describe_tile(tile):
+    """Describe a tile"""
+    print(f"\talpha: {tile.get_alpha()}",  "colorkey:", tile.get_colorkey(),
+          f"\tmask:{tile.get_masks() }")
+
+
 @dataclass
 class Map:
     name: str
@@ -227,6 +234,25 @@ class MapManager:
 
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
+        # corriger les cartes du bug de transparence :
+        CORRECT_TRANSPARENCY = True
+        EXPLAIN_MAP_TRANSPARENCY = True
+
+        if CORRECT_TRANSPARENCY:
+
+            for layer in tmx_data.visible_layers:
+                if isinstance(layer, TiledTileLayer):
+                    for (x, y, gid) in layer:
+                        tile = tmx_data.get_tile_image_by_gid(gid)
+                        if tile:
+                            # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
+                            print(f"x = {x}\ty = {y} \tGID = {gid}",  end = '')
+                            describe_tile(tile)
+                            COLOR_KEY = (0, 0, 0, 255)
+                            if tile.get_colorkey() != COLOR_KEY:
+                                # pour éviter que le fond ne soit noir sur les layers 2 et plus
+                                tile.set_colorkey(COLOR_KEY)
+
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
