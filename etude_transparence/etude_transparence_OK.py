@@ -21,12 +21,30 @@ map_w = tmx.width * tmx.tilewidth
 map_h = tmx.height * tmx.tileheight
 
 # Pré-rendu de la carte sur une surface (simple et rapide pour affichage)
-map_surface = pygame.Surface((map_w, map_h), pygame.SRCALPHA)
+map_surface = pygame.Surface((map_w, map_h)
+                             , pygame.SRCALPHA
+                             )
+
+print(list(tmx.visible_layers))
+
 for layer in tmx.visible_layers:
+    print(f"Je traite le layer {layer}")
     if isinstance(layer, TiledTileLayer):
-        for x, y, gid in layer:
+        print("Ce layer est à dessiner")
+        # pytmx rend un TiledTileLayer itérable
+        for i, (x, y, gid) in enumerate(layer):
             tile = tmx.get_tile_image_by_gid(gid)
-            if tile:
+            if tile :
+                # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
+
+                print("gid", gid, "alpha:", tile.get_alpha(), "colorkey:", tile.get_colorkey(), "has per-pixel alpha?:",
+                          tile.get_masks() != (0, 0, 0, 0))
+                col_k = tile.get_colorkey()
+                tile = tile.convert()
+                tile.set_colorkey([col_k])
+                print("gid", gid, "alpha:", tile.get_alpha(), "colorkey:", tile.get_colorkey(), "has per-pixel alpha?:",
+                          tile.get_masks() != (0, 0, 0, 0))
+
                 map_surface.blit(tile, (x * tmx.tilewidth, y * tmx.tileheight))
 
 # Caméra / décalage pour scroller

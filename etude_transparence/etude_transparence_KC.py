@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((width * tiles_in_pixels,
 pygame.display.set_caption("Carte TMX")
 
 # Charger la carte TMX
-tmx_data = pytmx.load_pygame("cartes/monde.tmx")
+tmx = pytmx.load_pygame("cartes/monde.tmx")
 
 
 # Boucle principale
@@ -32,11 +32,11 @@ while running:
     # Dessiner la carte
     screen.fill((0, 0, 0))
 
-    print(tmx_data.layers)
+    print(tmx.layers)
 
-    for layer in tmx_data.visible_layers:
+    for layer in tmx.visible_layers:
         for x, y, image in layer:
-            screen.blit(image, (x * tmx_data.tilewidth, y * tmx_data.tileheight))
+            screen.blit(image, (x * tmx.tilewidth, y * tmx.tileheight))
 
     pygame.display.flip()
 
