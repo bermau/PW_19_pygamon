@@ -55,8 +55,10 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 clock = pygame.time.Clock()
 
 # Nom du fichier TMX (même dossier)
-TMX_FILE = "cartes/monde.tmx"
 
+# Choisir une des 2 cartes pour mettre en évidence le fait que le bug existe même dans la carte garden...
+TMX_FILE = "cartes/monde.tmx"
+TMX_FILE = "cartes/garden.tmx"
 # Chargement de la carte (les images référencées dans le TMX sont chargées automatiquement)
 tmx = load_pygame(TMX_FILE)
 
@@ -66,7 +68,7 @@ map_h = tmx.height * tmx.tileheight
 
 # Pré-rendu de la carte sur une surface (simple et rapide pour affichage)
 map_surface = pygame.Surface((map_w, map_h)
-                             , pygame.SRCALPHA
+                             # , pygame.SRCALPHA
                              )
 map_surface.fill([115, 15, 13])
 print(list(tmx.visible_layers))
@@ -84,7 +86,7 @@ for layer in tmx.visible_layers:
                 print("gid", gid, "alpha:", tile.get_alpha(), "colorkey:", tile.get_colorkey(), "has per-pixel alpha?:",
                           tile.get_masks() != (0, 0, 0, 0))
                 # col_k = tile.get_colorkey()
-                tile = normalize_tile(tile)
+                # tile = normalize_tile(tile)
                 # tile.set_colorkey([col_k])
                 print("gid", gid, "alpha:", tile.get_alpha(), "colorkey:", tile.get_colorkey(), "has per-pixel alpha?:",
                           tile.get_masks() != (0, 0, 0, 0))
