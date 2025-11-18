@@ -47,10 +47,15 @@ def normalize_tile(tile):
     except Exception:
         return tile.convert()
 
+def describe_tile(tile):
+
+    print(f"x:{x}, y={y}", "   GID", gid, f"\talpha: {tile.get_alpha()}",  "colorkey:", tile.get_colorkey(),
+          f"\tmask:{tile.get_masks() }")
+
 
 pygame.init()
 FPS = 60
-SCREEN_W, SCREEN_H = 800, 600
+SCREEN_W, SCREEN_H = 200, 200
 screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 clock = pygame.time.Clock()
 
@@ -83,14 +88,10 @@ for layer in tmx.visible_layers:
             if tile :
                 # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
 
-                print("gid", gid, "alpha:", tile.get_alpha(), "colorkey:", tile.get_colorkey(), "has per-pixel alpha?:",
-                          tile.get_masks() != (0, 0, 0, 0))
+                describe_tile(tile)
                 # col_k = tile.get_colorkey()
                 # tile = normalize_tile(tile)
-                # tile.set_colorkey([col_k])
-                print("gid", gid, "alpha:", tile.get_alpha(), "colorkey:", tile.get_colorkey(), "has per-pixel alpha?:",
-                          tile.get_masks() != (0, 0, 0, 0))
-
+                tile.set_colorkey((0, 0, 0, 255))
                 map_surface.blit(tile, (x * tmx.tilewidth, y * tmx.tileheight))
 
 # Caméra / décalage pour scroller
