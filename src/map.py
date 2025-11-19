@@ -16,6 +16,10 @@ verbose = True
 # seed(1)
 START_WITH_MAP = 'garden'   # OK : 'dungeon', 'world', mais BUG avec 'house'
 
+# Debugging options :
+CORRECT_TRANSPARENCY = True
+EXPLAIN_MAP_TRANSPARENCY = False
+
 pygame.mixer.init()
 
 def groups_in_list(lst, code='X', blank=' '):
@@ -234,11 +238,9 @@ class MapManager:
 
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
-        # corriger les cartes du bug de transparence :
-        CORRECT_TRANSPARENCY = True
-        EXPLAIN_MAP_TRANSPARENCY = True
 
-        if CORRECT_TRANSPARENCY:
+        # corriger les cartes du bug de transparence :
+        if CORRECT_TRANSPARENCY and map_name == 'dungeon':
 
             for layer in tmx_data.visible_layers:
                 if isinstance(layer, TiledTileLayer):
@@ -247,10 +249,13 @@ class MapManager:
                         if tile:
                             # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
                             print(f"x = {x}\ty = {y} \tGID = {gid}",  end = '')
-                            describe_tile(tile)
+                            if EXPLAIN_MAP_TRANSPARENCY:
+                                describe_tile(tile)
                             COLOR_KEY = (0, 0, 0, 255)
                             if tile.get_colorkey() != COLOR_KEY:
                                 # pour éviter que le fond ne soit noir sur les layers 2 et plus
+                                if EXPLAIN_MAP_TRANSPARENCY:
+                                    print(f"MODIFICATION dans {map_name}")
                                 tile.set_colorkey(COLOR_KEY)
 
         map_data = pyscroll.data.TiledMapData(tmx_data)
