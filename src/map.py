@@ -2,6 +2,7 @@ import os
 import re
 from dataclasses import dataclass
 from pprint import pprint
+from telnetlib import OLD_ENVIRON
 
 import pygame
 import pyscroll
@@ -15,10 +16,14 @@ from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 verbose = True
 # seed(1)
 START_WITH_MAP = 'garden'   # OK : 'dungeon', 'world', mais BUG avec 'house'
-
+OK_COLOR_KEY = (0, 0, 0, 255)
+COLOR255 = (255, 255, 255, 255)
 # Debugging options :
-CORRECT_TRANSPARENCY = True
+CORRECT_TILE_TRANSPARENCY = False
+
+CORRECT_TILESET_TRANSPARENCY=True
 EXPLAIN_MAP_TRANSPARENCY = False
+SHOW_SIMPLIFIED_MAP = False
 
 pygame.mixer.init()
 
@@ -240,23 +245,32 @@ class MapManager:
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
 
         # corriger les cartes du bug de transparence :
-        if CORRECT_TRANSPARENCY and map_name == 'dungeon':
+        if CORRECT_TILESET_TRANSPARENCY :
+            for tileset in tmx_data.tilesets:
+                print(f"Tileset is {tileset} and its trans = {tileset.trans}")
+                tileset.trans = '000000'
+                print(tileset.__dict__)
 
+
+        if CORRECT_TILE_TRANSPARENCY and map_name in ['garden']:
             for layer in tmx_data.visible_layers:
                 if isinstance(layer, TiledTileLayer):
                     for (x, y, gid) in layer:
                         tile = tmx_data.get_tile_image_by_gid(gid)
+
                         if tile:
-                            # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
-                            print(f"x = {x}\ty = {y} \tGID = {gid}",  end = '')
                             if EXPLAIN_MAP_TRANSPARENCY:
+                                # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
+                                print(f"{layer} : x = {x}\ty = {y} \tGID = {gid}", end='')
                                 describe_tile(tile)
-                            COLOR_KEY = (0, 0, 0, 255)
-                            if tile.get_colorkey() != COLOR_KEY:
+
+                            if tile.get_colorkey() != OK_COLOR_KEY:
                                 # pour éviter que le fond ne soit noir sur les layers 2 et plus
                                 if EXPLAIN_MAP_TRANSPARENCY:
                                     print(f"MODIFICATION dans {map_name}")
-                                tile.set_colorkey(COLOR_KEY)
+                                tile.set_colorkey(OK_COLOR_KEY)
+                                if EXPLAIN_MAP_TRANSPARENCY:
+                                    print(f"Après modif {tile.get_colorkey()}")
 
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
@@ -302,8 +316,9 @@ class MapManager:
         # Fabriquer une carte simplifiée de 0 et de 1 pour les walls
         # Cette carte est fausse pour "house".
         simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
-        print(f"représentation  simplifiée de la carte pour {map_name}")
-        show_simple_page(simple_map)
+        if SHOW_SIMPLIFIED_MAP:
+            print(f"représentation  simplifiée de la carte pour {map_name}")
+            show_simple_page(simple_map)
 
         # Créer un objet Map
         self.maps[map_name] = Map(map_name, tmx_data, simple_map, walls, group, portals, npcs)
