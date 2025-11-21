@@ -241,7 +241,7 @@ class MapManager:
         if verbose:
             print(f"register_map() : Registering map '{map_name}'")
 
-        # Charger les cartes
+        # Charger les cartes tmx
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
 
         # corriger les cartes du bug de transparence :
