@@ -19,7 +19,7 @@ START_WITH_MAP = 'garden'   # OK : 'dungeon', 'world', mais BUG avec 'house'
 OK_COLOR_KEY = (0, 0, 0, 255)
 COLOR255 = (255, 255, 255, 255)
 # Debugging options :
-CORRECT_TILE_TRANSPARENCY = False
+CORRECT_TILE_TRANSPARENCY = True
 
 CORRECT_TILESET_TRANSPARENCY=True
 EXPLAIN_MAP_TRANSPARENCY = False
@@ -247,12 +247,15 @@ class MapManager:
         # corriger les cartes du bug de transparence :
         if CORRECT_TILESET_TRANSPARENCY :
             for tileset in tmx_data.tilesets:
-                print(f"Tileset is {tileset} and its trans = {tileset.trans}")
-                tileset.trans = '000000'
+                print()
+                print(f"Tileset for {map_name} is {tileset} and its trans = {tileset.trans}")
                 print(tileset.__dict__)
+                if tileset.trans != '000000':
+                    tileset.trans = '000000'
+                    print(f"I force {map_name}'s tileset.trans = {tileset.trans=}")
 
 
-        if CORRECT_TILE_TRANSPARENCY and map_name in ['garden']:
+        if CORRECT_TILE_TRANSPARENCY and map_name in ['dungeon']:
             for layer in tmx_data.visible_layers:
                 if isinstance(layer, TiledTileLayer):
                     for (x, y, gid) in layer:
