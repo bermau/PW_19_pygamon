@@ -16,7 +16,7 @@ PERCENTAGE_OF_SELECTED_COINS = 0.5
 
 verbose = True
 # seed(1)
-START_WITH_MAP = 'garden'   # OK : 'dungeon', 'world', mais BUG avec 'house'
+START_WITH_MAP = 'dungeon'   # OK : 'dungeon', 'world', mais BUG avec 'house'
 OK_COLOR_KEY = (0, 0, 0, 255)
 COLOR255 = (255, 255, 255, 255)
 # Debugging options :
@@ -201,7 +201,7 @@ class MapManager:
                           ],
 
                           npcs=[NPC('paul', self, 'garden'),
-                               NPC('robin', self, 'garden')],
+                                NPC('robin', self, 'garden')],
                           )
 
         # Ajouter un rectangle indicateur dans la carte world.
@@ -218,21 +218,21 @@ class MapManager:
                           ])
 
         self.register_map('dungeon',
-                          portals=[
-                              Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
-                                     teleport_point="spawn_from_dungeon"),
-                              Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
-                                     teleport_point="spawn_from_dungeon")
-                          ], verbose= True)
+                          # portals=[
+                          #     Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
+                          #            teleport_point="spawn_from_dungeon"),
+                          #     Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
+                          #            teleport_point="spawn_from_dungeon")
+                          # ],
+                          verbose=True)
         print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
-        print("FIN TELEPORT PLAYER") # PAS DE BU ICI
+        print("FIN TELEPORT PLAYER")  # PAS DE BUG ICI
         # Le BUG sur house a lieu dans teleport NPC. Sans doute parce que la carte simple de house est vide.
         self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin simple de la promenade
         print("FIN TELEPORT NPC")
         self.define_npcs_debuggers()
-
 
     def register_map(self, map_name, portals=None, npcs=None, verbose=False):
         if npcs is None:
@@ -493,14 +493,13 @@ def show_simple_page(map):
     :return:
     """
     g_map = []
+    translation = '  '
     for i, row in enumerate(map):
         line = ''
         for j, value in enumerate(row):
             if value == 1:
                 translation = 'ZZ'
-            elif value == 0:
-                translation = '  '
-            else:
+            elif value != 0:
                 print (f"Erreur sur la valeur en rangée ={i}, colonne = {j} : {value}" )
             line += translation
         g_map.append(line)
