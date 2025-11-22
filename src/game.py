@@ -65,6 +65,7 @@ class Game:
 
             self.map_manager.update()
             self.map_manager.draw()
+            # Mise à jour de rendu du compteur
             self.point_counter.render(self.screen)
             self.game_indic.render(self.screen)
 

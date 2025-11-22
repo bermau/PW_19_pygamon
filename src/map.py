@@ -2,7 +2,6 @@ import os
 import re
 from dataclasses import dataclass
 from pprint import pprint
-from telnetlib import OLD_ENVIRON
 
 import pygame
 import pyscroll
@@ -12,6 +11,8 @@ from random import randint, seed
 
 from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
+
+PERCENTAGE_OF_SELECTED_COINS = 0.5
 
 verbose = True
 # seed(1)
@@ -94,7 +95,7 @@ pygame.mixer.music.load(MUSIC)
 pygame.mixer.music.play(100)
 
 # Sound (bing/slap....)
-sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data" )
+sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data")
 coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "whiff.wav"))
 fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "boom.wav"))
 
@@ -126,7 +127,7 @@ class Coin(pygame.sprite.Sprite):
         self.coin_text_str = str(self.value)
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.coin_text_str, True, 'purple')
-        self.display_time = 3000               # µs of effect when the coin is touched
+        self.display_time = 3000  # µs of effect when the coin is touched
         self.init_coin()
 
     def init_coin(self):
@@ -241,7 +242,7 @@ class MapManager:
         if verbose:
             print(f"register_map() : Registering map '{map_name}'")
 
-        # Charger les cartes tmx
+        # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
 
         # corriger les cartes du bug de transparence :
@@ -289,7 +290,9 @@ class MapManager:
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-            elif obj.type == "coin_place":
+            # On implémente une fraction des pièces.
+            elif obj.type == "coin_place" and random() > PERCENTAGE_OF_SELECTED_COINS:
+
                 coins.add(Coin((obj.x - 24, obj.y - 24), self.screen))  # Valeur mal ajustée
 
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
@@ -313,6 +316,7 @@ class MapManager:
         group.add(self.player)
         # group.add(npcs)
         group.add(coins)  ## ??? mais coins est un groupe de Coin ???
+        # à group, qui contient déjà un groupe de pièce, on ajoute les NPC
         for npc in npcs:
             group.add(npc)
 
@@ -373,10 +377,20 @@ class MapManager:
                 coin = my_sprite
                 if self.player.feet.colliderect(coin):
                     if coin.never_touched:
-                        if verbose:
-                            print(f"Miam ! {coin.value} points !!")
+                        if coin.value >= 0:
+                            if verbose:
+                                print(f"Miam ! {coin.value} points !!")
+                                # jouer un son !
+                        else:
+                            if verbose:
+                                print("Mince ! une amende")
                         self.master_game.point_counter.points += coin.value
                         coin.never_touched = False
+                        # Bonus si toutes les pièces de la carte ont été ramassées
+                        if len(self.get_untouched_coins()) == 0:
+                            if verbose:
+                                print("Bonus de 100 points")
+                            self.master_game.point_counter.points += 100
                     coin.effect_during_death()
 
                 elif coin.biginning_of_the_end_time:
@@ -388,6 +402,17 @@ class MapManager:
 
     def get_group(self):
         return self.get_map().group
+
+    def get_all_coins(self):
+        """return all coins of current map"""
+        sprite_list_of_current_map = self.get_group()._spritelist
+        return [sprite for sprite in sprite_list_of_current_map if sprite.name == 'coin']
+
+    def get_untouched_coins(self):
+        """return the list of untouched coins of current map"""
+        sprite_list_of_current_map = self.get_group()._spritelist
+        return [sprite for sprite in sprite_list_of_current_map if
+                sprite.name == 'coin' and sprite.never_touched == True]
 
     def get_walls(self):
         return self.get_map().walls
