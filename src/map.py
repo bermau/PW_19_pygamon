@@ -7,7 +7,7 @@ import pygame
 import pyscroll
 import pytmx
 from pytmx import TiledTileLayer
-from random import randint, seed
+from random import randint, seed, random
 
 from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
