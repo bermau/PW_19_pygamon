@@ -71,27 +71,6 @@ class Portal:
     teleport_point: str
 
 
-def play_sound_(file_path=None):
-    """Play an audio file as a buffered sound sample
-
-    :param str file_path: audio file (default data/secosmic_low.wav)
-    """
-    # choose a desired audio format
-    pygame.mixer.init(11025)  # raises exception on fail
-
-    # load the sound
-    sound = pygame.mixer.Sound(file_path)
-
-    # start playing
-    print("Playing Sound...")
-    channel = sound.play()
-
-    # poll until finished
-    while channel.get_busy():  # still playing
-        print("  ...still going...")
-        pygame.time.wait(1000)
-    print("...Finished")
-
 REP = os.getcwd()
 
 # Init des sons
