@@ -153,7 +153,7 @@ class DijkstraManager:
         """
         node = dest_node
         path = []
-
+        logger.info(f"Entre dans format_path, {source_node=}, {dest_node=}")
         while node != source_node:
             dir_letter = self.parent[node.x][node.y]
             if dir_letter == 'L':

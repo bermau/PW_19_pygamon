@@ -92,7 +92,6 @@ class Coin(pygame.sprite.Sprite):
     """
     # Intentionally, there are more 1 point coins than 50 points coins. Some coins have negative values.
     values = (-1, -2, -50, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
-    # values = (-1, -2, -50, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -5, -5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos, screen):
         super().__init__()
@@ -203,12 +202,12 @@ class MapManager:
                           ])
 
         self.register_map('dungeon',
-                          # portals=[
-                          #     Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
-                          #            teleport_point="spawn_from_dungeon"),
-                          #     Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
-                          #            teleport_point="spawn_from_dungeon")
-                          # ],
+                          portals=[
+                              Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
+                                     teleport_point="spawn_from_dungeon"),
+                              Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
+                                     teleport_point="spawn_from_dungeon")
+                          ],
                           verbose=True)
         print("FIN DEFINITION DES CARTES")
 
