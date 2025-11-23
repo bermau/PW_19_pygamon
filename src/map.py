@@ -11,12 +11,15 @@ from random import randint, seed, random
 
 from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
+import logging
 
-PERCENTAGE_OF_SELECTED_COINS = 0.5
+LOG = logging.getLogger(__name__)
+
+
 
 verbose = True
 # seed(1)
-START_WITH_MAP = 'dungeon'   # OK : 'dungeon', 'world', mais BUG avec 'house'
+START_WITH_MAP = 'garden'   # OK : 'dungeon', 'garden', mais BUG avec 'house'
 OK_COLOR_KEY = (0, 0, 0, 255)
 COLOR255 = (255, 255, 255, 255)
 # Debugging options :
@@ -26,6 +29,9 @@ CORRECT_TILESET_TRANSPARENCY=True
 EXPLAIN_MAP_TRANSPARENCY = False
 SHOW_SIMPLIFIED_MAP = False
 
+PERCENTAGE_OF_SELECTED_COINS = 0.5
+
+# Music
 pygame.mixer.init()
 
 def groups_in_list(lst, code='X', blank=' '):
@@ -484,6 +490,7 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor) -> l
         bin_map.append(line_map)
 
     return bin_map
+
 
 def show_simple_page(map):
     """

@@ -9,17 +9,19 @@ import lib_drawing_tools
 
 lib_drawing_tools.display = False
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Game:
     def __init__(self):
         pygame.init()
         # Init le son
 
-        # pygame.mixer.init()
+        logger.info("Entrée dans __init__()")
 
         # Créer la fenêtre du jeu
         self.screen = pygame.display.set_mode((800, 800))
-        pygame.display.set_caption("La Grande Aventure")
+        pygame.display.set_caption("Great Aventure")
         # Générer un joueur
         self.player = Player(0, 0)
         # Gestionnaire de cartes

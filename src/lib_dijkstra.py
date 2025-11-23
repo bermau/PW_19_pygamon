@@ -4,6 +4,8 @@ from random import randint
 
 import pygame
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Point:
     """Gères les points présentés comme dans un tableau pandas.
@@ -71,7 +73,7 @@ class DijkstraManager:
         """
         : param graph: a list of list of (0 or 1). 1= wall = unaccessible point, 0 = non wall ( accessible point)
         """
-
+        logger.info("Passage par DijkstraManager")
         self.graph = graph
         self.row_nb = len(graph)
         self.col_nb = len(graph[0])
