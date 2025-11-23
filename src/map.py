@@ -13,7 +13,7 @@ from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 import logging
 
-LOG = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 
@@ -445,7 +445,7 @@ class MapManager:
         self.get_group().update()
         self.check_collision()
 
-        # Ici on pourrait gérer les effets sur les coins en train de mourir.
+        # Ici, on pourrait gérer les effets sur les coins en train de mourir.
 
         # Bouger les NPC
         for npc in self.get_map().npcs:
@@ -480,8 +480,8 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor) -> l
     for i, y in enumerate(range(0 + dec, map_h + dec, steps)):
         line_map = []
         for j, x in enumerate(range(0, map_w, steps)):
-            # pygame.Rect est ci un très petit carré (presque un point) de position x, y
-            # collide list attend des surfaces (Rect) et non pas un point}
+            # pygame.Rect est un très petit carré (presque un point) de position x, y
+            # collide list attend des surfaces (Rect) et non pas un point.
             PP = pygame.Rect(x, y, 1, 1)
             if PP.collidelist(walls_block_list) != -1:  # See documentation of colidelist()
                 line_map.append(1)
