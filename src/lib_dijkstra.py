@@ -41,9 +41,16 @@ class Point:
 
 
 def pyrect_to_point(tmx_data, area, reduction_factor):
-    # area is a Pygame.rect   Attention : le Point et area n'ont pas le même sens d'orientation : Point est géré
-    #           comme dans Pandas, area est géré comme dans pygame.
-    # reduction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    # area is a Pygame.rect   Attention : le Point et area n'ont pas le même sens d'orientation :
+    # Point est géré comme dans Pandas, area est géré comme dans pygame.
+    """
+    transform an Area (=Rect) into a Point
+
+    :param tmx_data:tmxdata
+    :param area:
+    :param reduction_factor:
+    :return: int  : n multiple de la taille des tuiles (donc général 16, 32...)
+    """
     area_center = area.center   # (x : décalage vers droite
                                 #  , y : décalage vers bas)
     # Point a une orientation de type Numpy, Pandas, etc.
@@ -51,12 +58,18 @@ def pyrect_to_point(tmx_data, area, reduction_factor):
     return Point(area_center[1]//tile_size, area_center[0]// tile_size)
 
 def point_to_pyrect(tmx_data, point: Point, reduction_factor= 32):
-    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
+    """
+    Transform a Point = Area into a Rect
+    :param tmx_data:
+    :param point:
+    :param reduction_factor: un multiple de la taille des tuiles (donc général 16, 32...)
+    :return: pygame.Rect
+    """
+
     tile_size = reduction_factor
     return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
 
-
-MAX = 9999   # Max de distance ???
+MAX = 9999   # Max de distance calculable
 
 class DijkstraManager:
     """Ma laborieuse implémentation d'un algorythme de Dijkstra.
