@@ -10,6 +10,7 @@ verbose = False
 
 
 class Entity(pygame.sprite.Sprite):
+    """Entity class est the parent of Player and NPC"""
 
     def __init__(self, name, x, y, screen=None):
         """
@@ -119,7 +120,9 @@ class NPC(Entity):
         # par self.calculate_then_teleport()
         # par exemple define_first_target()
 
+
     def calculate_next_area_idx(self):
+        self.modify_speed()
         while True:
             rnd = randint(0, self.areas_nb - 1)
             if rnd != self.current_area_idx:
