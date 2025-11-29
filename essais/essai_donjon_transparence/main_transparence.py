@@ -20,20 +20,9 @@ y_pixels = carte_tmx.height * carte_tmx.tileheight
 # pytmx ne sait pas "afficher l'image d'une layer".
 # Il faut afficher tuile par tuile les tuiles d'un layer
 
-layer0 = carte_tmx.layers[0]
-for x,y, tile in layer0.tiles():
-    fenetre.blit(tile, (x * carte_tmx.tilewidth, y * carte_tmx.tileheight))
-
-layer1 = carte_tmx.layers[1]
-for x,y, tile in layer1.tiles():
-    fenetre.blit(tile, (x * carte_tmx.tilewidth, y * carte_tmx.tileheight))
-
-# dungeon_surface.blit(carte_tmx, (0,0))
-# fenetre.blit(dungeon_surface,(0,0))
-
-# Taille totale de la carte en pixels
-# map_w = tmx.width * tmx.tilewidth
-# map_h = tmx.height * tmx.tileheight
+for layer in carte_tmx.visible_layers:
+    for x, y, tile in layer.tiles():
+        fenetre.blit(tile, (x * carte_tmx.tilewidth, y * carte_tmx.tileheight))
 
 
 # Create a blue surface
