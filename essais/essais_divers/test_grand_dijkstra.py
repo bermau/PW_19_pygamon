@@ -2,7 +2,7 @@
 
 import sys
 
-sys.path.append("../src")
+sys.path.append("../../src")
 
 from lib_dijkstra import DijkstraManager, Point
 
