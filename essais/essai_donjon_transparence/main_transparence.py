@@ -1,6 +1,8 @@
 # Importing the library
 from time import sleep
 import pygame
+from pytmx.util_pygame import load_pygame
+from pytmx import TiledTileLayer
 
 # Initializing Pygame
 pygame.init()
@@ -8,6 +10,31 @@ pygame.init()
 # Initializing surface
 fenetre = pygame.display.set_mode((600, 400))
 fenetre.fill("pink")
+
+# load an image from a tmx file
+carte_tmx = load_pygame("carte_donjon.tmx")
+x_pixels = carte_tmx.width * carte_tmx.tilewidth
+y_pixels = carte_tmx.height * carte_tmx.tileheight
+
+# extract first layer
+# pytmx ne sait pas "afficher l'image d'une layer".
+# Il faut afficher tuile par tuile les tuiles d'un layer
+
+layer0 = carte_tmx.layers[0]
+for x,y, tile in layer0.tiles():
+    fenetre.blit(tile, (x * carte_tmx.tilewidth, y * carte_tmx.tileheight))
+
+layer1 = carte_tmx.layers[1]
+for x,y, tile in layer1.tiles():
+    fenetre.blit(tile, (x * carte_tmx.tilewidth, y * carte_tmx.tileheight))
+
+# dungeon_surface.blit(carte_tmx, (0,0))
+# fenetre.blit(dungeon_surface,(0,0))
+
+# Taille totale de la carte en pixels
+# map_w = tmx.width * tmx.tilewidth
+# map_h = tmx.height * tmx.tileheight
+
 
 # Create a blue surface
 blue_surface = pygame.Surface((50, 50))
@@ -24,9 +51,9 @@ fenetre.blit(red_surface,(30, 30))
 # import a png (which has a transparent layout)
 file = "ts_dungeon.png"
 png_surface = pygame.image.load(file)
-png_surface.set_alpha(50)
+png_surface.set_alpha(150)
 fenetre.blit(png_surface, (200,100))
 
 # display for 2 seconds
 pygame.display.flip()
-sleep(5)
+sleep(4)
