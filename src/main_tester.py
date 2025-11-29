@@ -19,6 +19,7 @@ logging.basicConfig(
 
 # # Désactiver ou limiter les logs de pyscroll et autres bibliothèques
 # logging.getLogger('pyscroll').setLevel(logging.WARNING)  # Ne log que WARNING et plus
+#
 
 # Désactiver TOUS les logs qui ne sont pas les vôtres
 # Mettre le root logger à WARNING
@@ -38,7 +39,9 @@ if __name__ == '__main__':
     logger.info(f"Démarrage du LOG dans {logger}")
     logger.info(f"cwd ={os.getcwd()}")
 
+
     # setup game
     pygame.init()
-    my_game = Game()
+    my_game = Game(add_test_map=True)
     my_game.run()
+

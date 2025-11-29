@@ -15,9 +15,15 @@ logger = logging.getLogger(__name__)
 DEBUG_MAP = False
 
 class Game:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        """
+
+        :param kwargs: dict
+        """
         pygame.init()
-        # Init le son
+        logger.info(f"arguments : {kwargs=}")
+        # Il y sans doute plus simple ci dessous...
+        self.add_test_map = kwargs['add_test_map'] if 'add_test_map' in kwargs else None
 
         logger.info("Entrée dans __init__()")
 
@@ -27,7 +33,7 @@ class Game:
         # Générer un joueur
         self.player = Player(0, 0)
         # Gestionnaire de cartes
-        self.map_manager = MapManager(self, self.screen, self.player, verbose=True)
+        self.map_manager = MapManager(self, self.screen, self.player, verbose=True, **kwargs)
         # Un compteur
         self.point_counter = Counter()
         # Une zone à encadrer pour debugger
@@ -70,7 +76,7 @@ class Game:
             self.map_manager.update()
             # /home/bertrand/important/prog_local/PW_19_pygamon/map/dungeon_mini.tsx
 
-            if DEBUG_MAP:
+            if self.add_test_map :
                 self.map_manager.draw_map("dungeon_mini")
             else :
                 self.map_manager.draw_current_map()

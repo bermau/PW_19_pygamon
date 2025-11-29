@@ -165,8 +165,16 @@ class Map:
 class MapManager:
     """General manager of all maps"""
 
-    def __init__(self, master_game, screen, player, verbose=False):
-        """Charge les cartes, puis téléporte le joueur et enfin les NPC"""
+    def __init__(self, master_game, screen, player, verbose=False, **kwargs):
+        """
+        Charge les cartes, puis téléporte le joueur et enfin les NPC
+        :param master_game:
+        :param screen:
+        :param player:
+        :param verbose:
+        :param kwargs: DEBUG_ADD_TEST_MAP
+        """
+
         self.master_game = master_game
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
@@ -453,7 +461,7 @@ class MapManager:
                     one_indic.render(self.screen)
 
     def draw_map(self, map_name):
-        """  Utilitaire pour débugguer : afficher une carte
+        """  Utilitaire pour débugguer : afficher une carte spécifique
 
         :param map_name:
         :return: None
