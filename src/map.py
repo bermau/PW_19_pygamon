@@ -209,7 +209,7 @@ class MapManager:
                                      teleport_point="spawn_from_dungeon")
                           ],
                           verbose=True)
-        self.register_map('carte_donjon')
+        self.register_map('mini_dungeon')
 
         print("FIN DEFINITION DES CARTES")
 
@@ -436,6 +436,8 @@ class MapManager:
 
     def draw_current_map(self):
         # Dessine la carte courante
+        # TODO : bazar monstre. draw pointe sur un fichier de test !!!:
+
         self.get_group().draw(self.screen)
         # La ligne suivante est à l'origine du décalage de l'affichage du texte.
         # self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC

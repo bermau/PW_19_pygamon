@@ -67,9 +67,9 @@ class Game:
 
             self.map_manager.update()
 
-            DEBUG_MAP = True
+            DEBUG_MAP = False
             if DEBUG_MAP:
-                self.map_manager.draw_map("carte_donjon")
+                self.map_manager.draw_map("mini_dungeon")
             else :
                 self.map_manager.draw_current_map()
             # Mise à jour de rendu du compteur
