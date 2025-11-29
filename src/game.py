@@ -17,13 +17,15 @@ DEBUG_MAP = False
 class Game:
     def __init__(self, *args, **kwargs):
         """
+        D2bute le jeu. On peu débuguer en passant des arguments.
 
-        :param kwargs: dict
+        :param kwargs: among : add_test_ma:bool, test_map: str
         """
         pygame.init()
         logger.info(f"arguments : {kwargs=}")
-        # Il y sans doute plus simple ci dessous...
+        # Il y a sans doute plus simple que ci-dessous...
         self.add_test_map = kwargs['add_test_map'] if 'add_test_map' in kwargs else None
+        self.test_map = kwargs['test_map'] if 'test_map' in kwargs else "dungeon_mini"
 
         logger.info("Entrée dans __init__()")
 
@@ -77,7 +79,7 @@ class Game:
             # /home/bertrand/important/prog_local/PW_19_pygamon/map/dungeon_mini.tsx
 
             if self.add_test_map :
-                self.map_manager.draw_map("dungeon_mini")
+                self.map_manager.draw_map(self.test_map)
             else :
                 self.map_manager.draw_current_map()
             # Mise à jour de rendu du compteur

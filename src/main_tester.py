@@ -42,6 +42,6 @@ if __name__ == '__main__':
 
     # setup game
     pygame.init()
-    my_game = Game(add_test_map=True)
+    my_game = Game(add_test_map=True, test_map='dungeon')
     my_game.run()
 
