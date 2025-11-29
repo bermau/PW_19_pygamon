@@ -66,8 +66,8 @@ class Game:
             self.handle_input()
 
             self.map_manager.update()
-
-            DEBUG_MAP = False
+            # /home/bertrand/important/prog_local/PW_19_pygamon/map/tuiles_du_donjon.tsx
+            DEBUG_MAP = True
             if DEBUG_MAP:
                 self.map_manager.draw_map("mini_dungeon")
             else :
