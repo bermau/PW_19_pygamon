@@ -209,6 +209,8 @@ class MapManager:
                                      teleport_point="spawn_from_dungeon")
                           ],
                           verbose=True)
+        self.register_map('carte_donjon')
+
         print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
@@ -340,7 +342,7 @@ class MapManager:
 
     def check_collision(self):
         # portals
-        for portal in self.get_map().portals:
+        for portal in self.get_current_map().portals:
             if portal.from_world == self.current_map:
                 point = self.get_object(portal.origin_point)
                 rect = pygame.Rect(point.x, point.y, point.width, point.height)
@@ -383,11 +385,11 @@ class MapManager:
                     coin.display_its_last_secondes()
                     # coin.kill()
 
-    def get_map(self):
+    def get_current_map(self):
         return self.maps[self.current_map]
 
     def get_group(self):
-        return self.get_map().group
+        return self.get_current_map().group
 
     def get_all_coins(self):
         """return all coins of current map"""
@@ -401,10 +403,10 @@ class MapManager:
                 sprite.name == 'coin' and sprite.never_touched == True]
 
     def get_walls(self):
-        return self.get_map().walls
+        return self.get_current_map().walls
 
     def get_object(self, name):
-        return self.get_map().tmx_data.get_object_by_name(name)
+        return self.get_current_map().tmx_data.get_object_by_name(name)
 
     # trouver automatiquement le nombre d'objets correspondant à une regex
     # par exemple "paul_path\d"
@@ -428,12 +430,12 @@ class MapManager:
         # Ici, on pourrait gérer les effets sur les coins en train de mourir.
 
         # Bouger les NPC
-        for npc in self.get_map().npcs:
+        for npc in self.get_current_map().npcs:
             npc.move()
         pygame.display.flip()
 
-    def draw(self):
-        # Dessine la carte
+    def draw_current_map(self):
+        # Dessine la carte courante
         self.get_group().draw(self.screen)
         # La ligne suivante est à l'origine du décalage de l'affichage du texte.
         # self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
@@ -447,6 +449,15 @@ class MapManager:
             for npc in self_maps_world_.npcs:
                 for one_indic in npc.indic:
                     one_indic.render(self.screen)
+
+    def draw_map(self, map_name):
+        """  Utilitaire pour débugguer : afficher une carte
+
+        :param map_name:
+        :return: None
+        """
+        self.current_map= map_name
+        self.draw_current_map()
 
 
 def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor) -> list:

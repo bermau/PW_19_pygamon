@@ -66,7 +66,12 @@ class Game:
             self.handle_input()
 
             self.map_manager.update()
-            self.map_manager.draw()
+
+            DEBUG_MAP = True
+            if DEBUG_MAP:
+                self.map_manager.draw_map("carte_donjon")
+            else :
+                self.map_manager.draw_current_map()
             # Mise à jour de rendu du compteur
             self.point_counter.render(self.screen)
             self.game_indic.render(self.screen)

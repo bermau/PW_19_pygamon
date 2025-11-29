@@ -79,15 +79,15 @@ De façon similaire, on peut afficher un rectangle pour un monde particulier dan
         self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
 ```
 
-Puis on modifie la fonction `draw() `ainsi : 
+Puis on modifie la fonction `draw_current_map() `ainsi :
 
 ```python
-    def draw(self):
-        self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)
-        # On ajoute un indicateur pour debugger certaines cartes
-        if self.current_map == 'world':
-            self.maps['world'].indic.render(self.screen)
+    def draw_current_map(self):
+    self.get_group().draw_current_map(self.screen)
+    self.get_group().center(self.player.rect.center)
+    # On ajoute un indicateur pour debugger certaines cartes
+    if self.current_map == 'world':
+        self.maps['world'].indic.render(self.screen)
 ```
 Résultats : 
 
@@ -107,7 +107,7 @@ Pour analyser l'erreur, j'initialise le générateur de nombre aléatoire avec l
 L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il était parvenu au point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
 
 ## 23-03_afficher_la_valeur_des_pieces
-Je veux que, quand on ramasse une pièce, elle disparaisse en affichant sa valeur à sa place pendant quelques instants. J'ai donc modifié la classe `Coin()`. J'ai l'impression qu'après chaque blit ou draw il faut ajouter un nouveau `pygame.display.flip()`, mais je ne sais pas où le placer exactement. J'ai réussi à faire afficher la valeur de la pièce. Il y a un problème de stabilité de son affichage (scintillement, qui est dépendant du nombre d'images par seconde). MERGED sur Devel.
+Je veux que, quand on ramasse une pièce, elle disparaisse en affichant sa valeur à sa place pendant quelques instants. J'ai donc modifié la classe `Coin()`. J'ai l'impression qu'après chaque blit ou draw_current_map il faut ajouter un nouveau `pygame.display.flip()`, mais je ne sais pas où le placer exactement. J'ai réussi à faire afficher la valeur de la pièce. Il y a un problème de stabilité de son affichage (scintillement, qui est dépendant du nombre d'images par seconde). MERGED sur Devel.
 
 ## 23_03_supprimer_scintillement_de_la_valeur_des_pieces
 Résoudre le bug d'affichage de la valeur des pièces. Dépend de la vitesse du jeu nombre d'images secondes. 

@@ -1,4 +1,4 @@
-"""Tools to draw over the main game"""
+"""Tools to draw_current_map over the main game"""
 
 import pygame
 
