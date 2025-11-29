@@ -209,7 +209,7 @@ class MapManager:
                                      teleport_point="spawn_from_dungeon")
                           ],
                           verbose=True)
-        self.register_map('mini_dungeon')
+        self.register_map('dungeon_mini')
 
         print("FIN DEFINITION DES CARTES")
 

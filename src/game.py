@@ -12,6 +12,8 @@ lib_drawing_tools.display = False
 import logging
 logger = logging.getLogger(__name__)
 
+DEBUG_MAP = False
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -66,10 +68,10 @@ class Game:
             self.handle_input()
 
             self.map_manager.update()
-            # /home/bertrand/important/prog_local/PW_19_pygamon/map/donjon_mini.tsx
-            DEBUG_MAP = True
+            # /home/bertrand/important/prog_local/PW_19_pygamon/map/dungeon_mini.tsx
+
             if DEBUG_MAP:
-                self.map_manager.draw_map("mini_dungeon")
+                self.map_manager.draw_map("dungeon_mini")
             else :
                 self.map_manager.draw_current_map()
             # Mise à jour de rendu du compteur
