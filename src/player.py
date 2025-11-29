@@ -2,7 +2,7 @@ import random
 from random import randint
 import pygame
 
-from essais.essai_dijkstra_damier import title
+# from essais.essai_dijkstra_damier import title
 from lib_dijkstra import DijkstraManager, Point, pyrect_to_point, point_to_pyrect
 from src.lib_drawing_tools import DebugRect
 
