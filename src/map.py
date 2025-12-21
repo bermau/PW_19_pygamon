@@ -13,26 +13,26 @@ from src.player import NPC
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
 import logging
 
+FPS = 60    # image per second
+
 logger = logging.getLogger(__name__)
-
-
 
 verbose = True
 # seed(1)
 START_WITH_MAP = 'garden'   # OK : 'dungeon', 'garden', mais BUG avec 'house'
 OK_COLOR_KEY = (0, 0, 0, 255)
 COLOR255 = (255, 255, 255, 255)
+# Coins
+PERCENTAGE_OF_SELECTED_COINS = 0.5
+COIN_MAX_TIME = 3000  # µs of effect when the coin is touched
 # Debugging options :
 CORRECT_TILE_TRANSPARENCY = True
-
 CORRECT_TILESET_TRANSPARENCY=True
 EXPLAIN_MAP_TRANSPARENCY = False
 SHOW_SIMPLIFIED_MAP = False
-
-PERCENTAGE_OF_SELECTED_COINS = 0.5
-
-# Music
+# Init music
 pygame.mixer.init()
+
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -99,7 +99,7 @@ class Coin(pygame.sprite.Sprite):
         self.name = 'coin'
         self.screen = screen
         self.image = pygame.image.load("../images/coin.png")
-
+        self.status = 0     # 0 : untouched ; 1 : touched ; 2 :after_touched.
         self.rect = self.image.get_rect()
         self.center = self.rect.center
         self.rect.topleft = pos
@@ -107,11 +107,12 @@ class Coin(pygame.sprite.Sprite):
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
         self.coin_icon_name = None  # icon with a value of the coin
         self.counter_for_explosion = 20
-        self.biginning_of_the_end_time = None  # Début de la mort de la pièce
+        self.the_beginning_of_the_end_time = None  # Début de la mort de la pièce
         self.coin_text_str = str(self.value)
+        self.coin_text_alpha = 255
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.coin_text_str, True, 'purple')
-        self.display_time = 3000  # µs of effect when the coin is touched
+        self.display_time = COIN_MAX_TIME
         self.init_coin()
 
     def init_coin(self):
@@ -120,29 +121,26 @@ class Coin(pygame.sprite.Sprite):
         else:
             self.coin_icon_name = "../images/fine.png"
 
-    def effect_during_death(self):
-        """Action durant quelques secondes"""
-        if not self.biginning_of_the_end_time:
-            self.biginning_of_the_end_time = pygame.time.get_ticks()
-
+    def display_image(self):
+        if self.status == 0:
+            pass
+        elif self.status == 1:
+            # Ci-dessous, on prépare l'image... qui sera affichée au tour suivant
+            self.image = pygame.image.load(self.coin_icon_name)
+            self.screen.blit(self.image, self.rect)
+            # sound
             if self.value > 0:
                 coin_sound.play()
             else:
                 fine_sound.play()
-
-            self.image = pygame.image.load(self.coin_icon_name)
-
-        current_time = pygame.time.get_ticks()
-        if current_time - self.biginning_of_the_end_time < self.display_time:
-            self.display_its_last_secondes()
+            # changer état
+            self.status = 2
         else:
-            self.kill()
-
-    def display_its_last_secondes(self):
-        """Display the coin value, for a few seconds"""
-        self.screen.blit(self.coin_text, self.rect)
-        if pygame.time.get_ticks() - self.biginning_of_the_end_time > self.display_time:
-            self.kill()
+            # au tour suivant l'image est affichée.
+            self.screen.blit(self.image, self.rect)
+            self.image.set_alpha(self.image.get_alpha() - 5)
+            self.screen.blit(self.coin_text, self.rect)
+            self.coin_text.set_alpha(self.coin_text.get_alpha() - 5)
 
 
 def describe_tile(tile):
@@ -349,7 +347,7 @@ class MapManager:
                 npc.add_indic('green', ar, 3)
 
     def check_collision(self):
-        # portals
+        # with portals
         for portal in self.get_current_map().portals:
             if portal.from_world == self.current_map:
                 point = self.get_object(portal.origin_point)
@@ -361,7 +359,7 @@ class MapManager:
                     self.teleport_player(copy_portal.teleport_point)
                     self.master_game.point_counter.points += 100
 
-        # collisions, coins
+        # with walls and coins
         for my_sprite in self.get_group().sprites():
             # fix BUG_SAUT : Ne reculer que si le sprite est un Player, pas un NPC
             # if isinstance(my_sprite, Player):
@@ -372,26 +370,32 @@ class MapManager:
             if isinstance(my_sprite, Coin):
                 coin = my_sprite
                 if self.player.feet.colliderect(coin):
-                    if coin.never_touched:
+                    if coin.status == 0:
+                        coin.status = 1
+                        coin.the_beginning_of_the_end_time = pygame.time.get_ticks()
+                        # comments
                         if coin.value >= 0:
                             if verbose:
                                 print(f"Miam ! {coin.value} points !!")
-                                # jouer un son !
                         else:
                             if verbose:
                                 print("Mince ! une amende")
+                        # points
                         self.master_game.point_counter.points += coin.value
-                        coin.never_touched = False
+
                         # Bonus si toutes les pièces de la carte ont été ramassées
                         if len(self.get_untouched_coins()) == 0:
                             if verbose:
                                 print("Bonus de 100 points")
                             self.master_game.point_counter.points += 100
-                    coin.effect_during_death()
+                else:
+                    coin.display_image()
 
-                elif coin.biginning_of_the_end_time:
-                    coin.display_its_last_secondes()
-                    # coin.kill()
+                if coin.the_beginning_of_the_end_time:
+                    if pygame.time.get_ticks() - coin.the_beginning_of_the_end_time > COIN_MAX_TIME:
+                        coin.kill()
+                        print(f"Coin {coin.name} killed" )
+
 
     def get_current_map(self):
         return self.maps[self.current_map]
@@ -408,7 +412,7 @@ class MapManager:
         """return the list of untouched coins of current map"""
         sprite_list_of_current_map = self.get_group()._spritelist
         return [sprite for sprite in sprite_list_of_current_map if
-                sprite.name == 'coin' and sprite.never_touched == True]
+                sprite.name == 'coin' and sprite.status == 0]
 
     def get_walls(self):
         return self.get_current_map().walls
