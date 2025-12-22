@@ -113,6 +113,8 @@ class Coin(pygame.sprite.Sprite):
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
         self.coin_text = myfont.render(self.coin_text_str, True, 'purple')
         self.display_time = COIN_MAX_TIME
+        self.delta_x_effect = 0
+        self.delta_x_effect = 0
         self.init_coin()
 
     def init_coin(self):
@@ -120,6 +122,8 @@ class Coin(pygame.sprite.Sprite):
             self.coin_icon_name = f"../images/coin_{self.value}.png"
         else:
             self.coin_icon_name = "../images/fine.png"
+        self.delta_x_effect = randint(0, 3)
+        self.delta_y_effect = randint(0, 3)
 
     def display_image(self):
         if self.status == 0:
@@ -136,8 +140,13 @@ class Coin(pygame.sprite.Sprite):
             # changer état
             self.status = 2
         else:
-            # au tour suivant l'image est affichée.
+            # au tour suivant l'image et le texte sont affichés.
             self.screen.blit(self.image, self.rect)
+            # trajectoire de la pièce
+            self.rect = self.rect.move(self.delta_x_effect, self.delta_y_effect)
+            self.delta_x_effect = self.delta_x_effect + randint(-1,1)
+            self.delta_y_effect = self.delta_y_effect + randint(-1, 1)
+
             self.image.set_alpha(self.image.get_alpha() - 5)
             self.screen.blit(self.coin_text, self.rect)
             self.coin_text.set_alpha(self.coin_text.get_alpha() - 5)
