@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pprint import pprint
 
 import pygame
+from pygame import examples
 import pyscroll
 import pytmx
 from pytmx import TiledTileLayer
@@ -79,11 +80,10 @@ MUSIC = os.path.join("../sounds/080415pianobgm3popver.ogg")
 pygame.mixer.music.load(MUSIC)
 pygame.mixer.music.play(100)
 
-# Sound (bing/slap....)
-sound_rep = os.path.join(REP, "..", "venv", "lib/python3.10/site-packages/pygame/examples/data")
-coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "whiff.wav"))
-fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "boom.wav"))
-
+# J'emprunte des sons de la librairie des exemples.
+sound_rep = pygame.examples.__path__[0]
+coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "data", "whiff.wav"))
+fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "data", "boom.wav"))
 
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
