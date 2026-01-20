@@ -4,16 +4,22 @@ from random import randint
 
 import pygame
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Point:
+    """Gères les points présentés comme dans un tableau pandas.
+    Point désigne une case de la carte, et non pas des pixels.
+    Point est caractérisé par deux indices, commençant à 0, et gérés comme un tableau Pandas.
+    """
     def __init__(self, x, y):
-        """x : = row, descending
-           y : = col, left to right"""
+        """x : = row, descending, first value equals 0
+           y : = col, left to right, first value equals 0"""
         self.x = x
         self.y = y
 
-    def __eq__(self, other):
-        return self.x == other.x and self.y == other.y
+    def __eq__(self, other_point):
+        return self.x == other_point.x and self.y == other_point.y
 
     def __str__(self):
         return f"Point ({self.x}, {self.y})"
@@ -33,15 +39,58 @@ class Point:
     def right(self):
         return Point(self.x, self.y + 1)
 
-MAX = 9999
+
+def pyrect_to_point(tmx_data, area, reduction_factor):
+    # area is a Pygame.rect   Attention : le Point et area n'ont pas le même sens d'orientation :
+    # Point est géré comme dans Pandas, area est géré comme dans pygame.
+    """
+    transform an Area (=Rect) into a Point
+
+    :param tmx_data:tmxdata
+    :param area:
+    :param reduction_factor:
+    :return: int  : n multiple de la taille des tuiles (donc général 16, 32...)
+    """
+    area_center = area.center   # (x : décalage vers droite
+                                #  , y : décalage vers bas)
+    # Point a une orientation de type Numpy, Pandas, etc.
+    tile_size = reduction_factor
+    return Point(area_center[1]//tile_size, area_center[0]// tile_size)
+
+def point_to_pyrect(tmx_data, point: Point, reduction_factor= 32):
+    """
+    Transform a Point = Area into a Rect
+    :param tmx_data:
+    :param point:
+    :param reduction_factor: un multiple de la taille des tuiles (donc général 16, 32...)
+    :return: pygame.Rect
+    """
+
+    tile_size = reduction_factor
+    return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
+
+MAX = 9999   # Max de distance calculable
 
 class DijkstraManager:
+    """Ma laborieuse implémentation d'un algorythme de Dijkstra.
+    L'espace est représentée en utilisant une liste de liste d'instances de la classe Point. Penser à la représentation
+    de type Nympy, Pandas.
+    L'espace est représenté sous la forme d'une liste de listes. La première liste représente la ligne du haut de la carte. La dernière liste représente la ligne du bas de la carte.
+    DAns chaque liste, les valeurs représent les représentation de cases de la carte en allant de gauche à droite.
+    Les valeurs sont des 1 ou 0. 1 signifie que la case n'est pas accessible (mur, eau...). 0 indique que la case est
+    libre.
+
+    """
 
     def __init__(self, graph):
-
+        """
+        : param graph: a list of list of (0 or 1). 1= wall = unaccessible point, 0 = non wall ( accessible point)
+        """
+        logger.info("Passage par DijkstraManager")
         self.graph = graph
         self.row_nb = len(graph)
         self.col_nb = len(graph[0])
+        # Ci-dessous, on crée des listes de listes, ce qui représente un espace rectangulaire
         self.visited = [[False for _ in range(self.col_nb)] for _ in range(self.row_nb)]
         self.distance = [[MAX for _ in range(self.col_nb)] for _ in range(self.row_nb)]
         self.parent = [[None for _ in range(self.col_nb)] for _ in range(self.row_nb)]
@@ -93,14 +142,18 @@ class DijkstraManager:
             print()
 
     def pSol(self):
-        print("**** oSol ****")
+        print("**** pSol ****")
         self.print_distances()
 
     def format_path(self, source_node, dest_node, verbose=False):
-        """Return the shortest path between 2 nodes"""
+        """Return the shortest path between 2 nodes
+        update self.path
+
+        Cette méthode est à appeler après dijkstra.
+        """
         node = dest_node
         path = []
-
+        logger.info(f"Entre dans format_path, {source_node=}, {dest_node=}")
         while node != source_node:
             dir_letter = self.parent[node.x][node.y]
             if dir_letter == 'L':
@@ -120,7 +173,8 @@ class DijkstraManager:
             node = next_point
         path.append((node, None))
 
-        verbose = True
+        self.path = path
+
         if verbose:
             print(f"Pour aller du node {source_node} au node {dest_node}")
             print(f"Path from {source_node} to {dest_node} is : ")
@@ -130,8 +184,11 @@ class DijkstraManager:
                     print(f" <--- ", end='')
                 else:
                     print("\nTotal cost : ", self.distance[dest_node.x][dest_node.y])
-        self.path = path
-        print(self.path)
+        if verbose:
+            print(path)
+        return path
+
+
 
     def give_next_instruction(self):
         if self.path:
@@ -139,10 +196,10 @@ class DijkstraManager:
         else:
             return (None, None)
 
-    def node_with_min_distance(self, p):
+    def node_with_min_distance(self, p, verbose=False):
         """Doit retourner un point et sa direction
         Ce point est non déjà décrit. et son accès est le plus faible autres frères."""
-        verbose = False
+
         local_min = MAX
         best_index = None
         best_direction = None
@@ -240,25 +297,10 @@ class DijkstraManager:
             if self.all_points_are_explored() or loop_i > 300:
                 break
             u = self.choose_non_visited_rnd_point()
+        if verbose:
+            print(f"Tout semble exploré après {loop_i} passages.")
+            self.print_distances()
 
-        print(f"Tout semble exploré après {loop_i} passages.")
-        self.print_distances()
-
-
-def pyrect_to_point(tmx_data, area, reduction_factor):
-    # area is a Pygame.rect
-    # Attention : le Point et area n'ont pas le même sens d'orientation :
-    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
-    area_center = area.center   # (x : décalage vers droite
-                                #  , y : décalage vers bas)
-    # Point a une orientation de type Numpy, Pandas, etc.
-    tile_size = reduction_factor
-    return Point(area_center[1]//tile_size, area_center[0]// tile_size)
-
-def point_to_pyrect(tmx_data, point: Point, reduction_factor = 32):
-    # refuction factor : un multiple de la taille des tuiles (donc général 16, 32...)
-    tile_size = reduction_factor
-    return pygame.Rect(point.y * tile_size, point.x * tile_size, tile_size, tile_size)
 
 if __name__ == '__main__':
     # Explication : chaque ligne indique le cout pour passer d'une ligne à la colonne.

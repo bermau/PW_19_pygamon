@@ -9,18 +9,33 @@ import lib_drawing_tools
 
 lib_drawing_tools.display = False
 
+import logging
+logger = logging.getLogger(__name__)
+
+DEBUG_MAP = False
 
 class Game:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        """
+        D2bute le jeu. On peu débuguer en passant des arguments.
+
+        :param kwargs: among : add_test_ma:bool, test_map: str
+        """
         pygame.init()
+        logger.info(f"arguments : {kwargs=}")
+        # Il y a sans doute plus simple que ci-dessous...
+        self.add_test_map = kwargs['add_test_map'] if 'add_test_map' in kwargs else None
+        self.test_map = kwargs['test_map'] if 'test_map' in kwargs else "dungeon_mini"
+
+        logger.info("Entrée dans __init__()")
 
         # Créer la fenêtre du jeu
         self.screen = pygame.display.set_mode((800, 800))
-        pygame.display.set_caption("Dinosaure aventure")
+        pygame.display.set_caption("Great Aventure")
         # Générer un joueur
         self.player = Player(0, 0)
         # Gestionnaire de cartes
-        self.map_manager = MapManager(self, self.screen, self.player)
+        self.map_manager = MapManager(self, self.screen, self.player, verbose=True, **kwargs)
         # Un compteur
         self.point_counter = Counter()
         # Une zone à encadrer pour debugger
@@ -61,7 +76,13 @@ class Game:
             self.handle_input()
 
             self.map_manager.update()
-            self.map_manager.draw()
+            # /home/bertrand/important/prog_local/PW_19_pygamon/map/dungeon_mini.tsx
+
+            if self.add_test_map :
+                self.map_manager.draw_map(self.test_map)
+            else :
+                self.map_manager.draw_current_map()
+            # Mise à jour de rendu du compteur
             self.point_counter.render(self.screen)
             self.game_indic.render(self.screen)
 

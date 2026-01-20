@@ -1,20 +1,39 @@
+import os
 import re
 from dataclasses import dataclass
 from pprint import pprint
 
 import pygame
+from pygame import examples
 import pyscroll
 import pytmx
-from random import randint, seed
+from pytmx import TiledTileLayer
+from fast_random import randint,  random
 
 from src.player import NPC
-
 from lib_drawing_tools import DebugRect, render_world_grid, render_simple_world
+import logging
 
-verbose = False
+FPS = 60    # image per second
+
+logger = logging.getLogger(__name__)
+
+verbose = True
 # seed(1)
-global DEBUG
-DEBUG = False
+START_WITH_MAP = 'garden'   # OK : 'dungeon', 'garden', mais BUG avec 'house'
+OK_COLOR_KEY = (0, 0, 0, 255)
+COLOR255 = (255, 255, 255, 255)
+# Coins
+PERCENTAGE_OF_SELECTED_COINS = 0.5
+COIN_MAX_TIME = 3000  # µs of effect when the coin is touched
+# Debugging options :
+CORRECT_TILE_TRANSPARENCY = True
+CORRECT_TILESET_TRANSPARENCY=True
+EXPLAIN_MAP_TRANSPARENCY = False
+SHOW_SIMPLIFIED_MAP = False
+# Init music
+pygame.mixer.init()
+
 
 def groups_in_list(lst, code='X', blank=' '):
     """Find a list of continuous signs. This is used to try to reduce memory usage.
@@ -53,53 +72,99 @@ class Portal:
     teleport_point: str
 
 
+REP = os.getcwd()
+
+# Init des sons
+# music :
+MUSIC = os.path.join("../sounds/080415pianobgm3popver.ogg")
+pygame.mixer.music.load(MUSIC)
+pygame.mixer.music.play(100)
+
+# J'emprunte des sons de la librairie des exemples.
+sound_rep = pygame.examples.__path__[0]
+coin_sound = pygame.mixer.Sound(os.path.join(sound_rep, "data", "whiff.wav"))
+fine_sound = pygame.mixer.Sound(os.path.join(sound_rep, "data", "boom.wav"))
+
 # Vient de https://coderslegacy.com/pygame-platformer-coins-and-images/
 class Coin(pygame.sprite.Sprite):
-    # Intentionally, there are more 1 point coins than 50 points coins.
-    values = (1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
+    """Coin Management.  Gestion des Pièces. En début de partie, la valeur de la pièce n'est pas affichée.
+    Quand le personnage touche la pièce, la valeur de la pièce sera affichéee.
+    """
+    # Intentionally, there are more 1 point coins than 50 points coins. Some coins have negative values.
+    values = (-1, -2, -50, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 5, 5, 5, 10, 10, 20, 50)
 
     def __init__(self, pos, screen):
         super().__init__()
-        self.never_eaten = True
+        self.never_touched = True
         self.name = 'coin'
         self.screen = screen
-        self.image = pygame.image.load("../map/coin.png")
+        self.image = pygame.image.load("../images/coin.png")
+        self.status = 0     # 0 : untouched ; 1 : touched ; 2 :after_touched.
         self.rect = self.image.get_rect()
         self.center = self.rect.center
         self.rect.topleft = pos
         self.feet = pygame.Rect(0, 0, self.rect.width * 0.5, 16)
         self.value = Coin.values[randint(0, len(Coin.values) - 1)]
+        self.coin_icon_name = None  # icon with a value of the coin
         self.counter_for_explosion = 20
-        self.biginning_of_the_end_time = None
-        self.pause_text = str(self.value)
+        self.the_beginning_of_the_end_time = None  # Début de la mort de la pièce
+        self.coin_text_str = str(self.value)
+        self.coin_text_alpha = 255
         myfont = pygame.font.Font('../dialogs/dialog_font.ttf', 42)
-        self.coin_text = myfont.render(self.pause_text, True, 'purple')
-        self.display_time = 1000
+        self.coin_text = myfont.render(self.coin_text_str, True, 'purple')
+        self.display_time = COIN_MAX_TIME
+        self.delta_x_effect = 0
+        self.delta_x_effect = 0
+        self.init_coin()
 
-    def effect_during_death(self):
-        """Action durant quelques secondes"""
-        if not self.biginning_of_the_end_time:
-            self.biginning_of_the_end_time = pygame.time.get_ticks()
-
-        current_time = pygame.time.get_ticks()
-        if current_time - self.biginning_of_the_end_time < self.display_time:
-            self.display_its_last_secondes()
+    def init_coin(self):
+        if self.value > 0:
+            self.coin_icon_name = f"../images/coin_{self.value}.png"
         else:
-            self.kill()
+            self.coin_icon_name = "../images/fine.png"
+        self.delta_x_effect = randint(0, 3)
+        self.delta_y_effect = randint(0, 3)
 
-    def display_its_last_secondes(self):
-        self.screen.blit(self.coin_text, self.rect)
-        if pygame.time.get_ticks() - self.biginning_of_the_end_time > self.display_time:
-            self.kill()
+    def display_image(self):
+        if self.status == 0:
+            pass
+        elif self.status == 1:
+            # Ci-dessous, on prépare l'image... qui sera affichée au tour suivant
+            self.image = pygame.image.load(self.coin_icon_name)
+            self.screen.blit(self.image, self.rect)
+            # sound
+            if self.value > 0:
+                coin_sound.play()
+            else:
+                fine_sound.play()
+            # changer état
+            self.status = 2
+        else:
+            # au tour suivant l'image et le texte sont affichés.
+            self.screen.blit(self.image, self.rect)
+            # trajectoire de la pièce
+            self.rect = self.rect.move(self.delta_x_effect, self.delta_y_effect)
+            self.delta_x_effect = self.delta_x_effect + randint(-1,1)
+            self.delta_y_effect = self.delta_y_effect + randint(-1, 1)
+
+            self.image.set_alpha(self.image.get_alpha() - 5)
+            self.screen.blit(self.coin_text, self.rect)
+            self.coin_text.set_alpha(self.coin_text.get_alpha() - 5)
+
+
+def describe_tile(tile):
+    """Describe a tile"""
+    print(f"\talpha: {tile.get_alpha()}",  "colorkey:", tile.get_colorkey(),
+          f"\tmask:{tile.get_masks() }")
 
 
 @dataclass
 class Map:
     name: str
+    tmx_data: pytmx.TiledMap
+    simple_map: list
     walls: list[pygame.Rect]
     group: pyscroll.PyscrollGroup
-    simple_map: list
-    tmx_data: pytmx.TiledMap
     portals: list[Portal]
     npcs: list[NPC]
 
@@ -107,31 +172,45 @@ class Map:
 class MapManager:
     """General manager of all maps"""
 
-    def __init__(self, master_game, screen, player, verbose=False):
-        """Charge les cartes, puis téléporte le joueur et enfin les NPC"""
+    def __init__(self, master_game, screen, player, verbose=False, **kwargs):
+        """
+        Charge les cartes, puis téléporte le joueur et enfin les NPC
+        :param master_game:
+        :param screen:
+        :param player:
+        :param verbose:
+        :param kwargs: DEBUG_ADD_TEST_MAP
+        """
+
         self.master_game = master_game
         self.maps = dict()  # "house" -> Map ("house", walls, group)
         self.screen = screen
         self.player = player
         self.verbose = verbose
-        self.current_map = 'world'
+        self.current_map = START_WITH_MAP
 
         # Portal indique comment entrer dans un autre monde.
         # Attention le from_world doit absolument avoir tous les origin_points.
-        self.register_map('world',
-                          portals=[Portal(from_world="world", origin_point='enter_house', target_world="house",
-                                          teleport_point="spawn_from_world")],
-                          npcs=[NPC('paul', self, 'world'),
-                               NPC('robin', self, 'world')],
+        self.register_map('garden',
+                          portals=[
+                              Portal(from_world="garden", origin_point='enter_house', target_world="house",
+                                     teleport_point="spawn_from_garden"),
+                              Portal(from_world="garden", origin_point='enter_dungeon', target_world="dungeon",
+                                     teleport_point="spawn_from_garden")
+                          ],
+
+                          npcs=[NPC('paul', self, 'garden'),
+                                NPC('robin', self, 'garden')],
                           )
 
         # Ajouter un rectangle indicateur dans la carte world.
-        # self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
+        # Nécessite lib_drawing_tools.display = True
+        self.maps['garden'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 3)
 
         # Enregistrer les autres cartes.
         self.register_map('house',
                           portals=[
-                              Portal(from_world='house', origin_point='enter_world', target_world='world',
+                              Portal(from_world='house', origin_point='enter_garden', target_world='garden',
                                      teleport_point="spawn_from_house"),
                               Portal(from_world='house', origin_point='enter_dungeon', target_world='dungeon',
                                      teleport_point="spawn_from_house")
@@ -141,24 +220,63 @@ class MapManager:
                           portals=[
                               Portal(from_world='dungeon', origin_point='enter_house', target_world='house',
                                      teleport_point="spawn_from_dungeon"),
-                              Portal(from_world='dungeon', origin_point='enter_world', target_world='world',
+                              Portal(from_world='dungeon', origin_point='enter_garden', target_world='garden',
                                      teleport_point="spawn_from_dungeon")
-                          ])
+                          ],
+                          verbose=True)
+        self.register_map('dungeon_mini')
+
+        print("FIN DEFINITION DES CARTES")
 
         self.teleport_player('player')
-        self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin de la promenade
+        print("FIN TELEPORT PLAYER")  # PAS DE BUG ICI
+        # Le BUG sur house a lieu dans teleport NPC. Sans doute parce que la carte simple de house est vide.
+        self.teleport_npcs()  # Déduit les areas de la carte. Calcule le chemin simple de la promenade
+        print("FIN TELEPORT NPC")
         self.define_npcs_debuggers()
 
-    def register_map(self, map_name, portals=None, npcs=None):
+    def register_map(self, map_name, portals=None, npcs=None, verbose=False):
         if npcs is None:
             npcs = []
         if portals is None:
             portals = []
         if verbose:
-            print("Registering map", map_name)
+            print(f"register_map() : Registering map '{map_name}'")
 
         # Charger les cartes
         tmx_data = pytmx.util_pygame.load_pygame(f"../map/{map_name}.tmx")
+
+        # corriger les cartes du bug de transparence :
+        if CORRECT_TILESET_TRANSPARENCY :
+            for tileset in tmx_data.tilesets:
+                print()
+                print(f"Tileset for {map_name} is {tileset} and its trans = {tileset.trans}")
+                print(tileset.__dict__)
+                if tileset.trans != '000000':
+                    tileset.trans = '000000'
+                    print(f"I force {map_name}'s tileset.trans = {tileset.trans=}")
+
+
+        if CORRECT_TILE_TRANSPARENCY and map_name in ['dungeon']:
+            for layer in tmx_data.visible_layers:
+                if isinstance(layer, TiledTileLayer):
+                    for (x, y, gid) in layer:
+                        tile = tmx_data.get_tile_image_by_gid(gid)
+
+                        if tile:
+                            if EXPLAIN_MAP_TRANSPARENCY:
+                                # La ligne ci-dessous montre que les tiles fautifs ont un colorkey à (255, 255, 255, 255).
+                                print(f"{layer} : x = {x}\ty = {y} \tGID = {gid}", end='')
+                                describe_tile(tile)
+
+                            if tile.get_colorkey() != OK_COLOR_KEY:
+                                # pour éviter que le fond ne soit noir sur les layers 2 et plus
+                                if EXPLAIN_MAP_TRANSPARENCY:
+                                    print(f"MODIFICATION dans {map_name}")
+                                tile.set_colorkey(OK_COLOR_KEY)
+                                if EXPLAIN_MAP_TRANSPARENCY:
+                                    print(f"Après modif {tile.get_colorkey()}")
+
         map_data = pyscroll.data.TiledMapData(tmx_data)
         map_layer = pyscroll.orthographic.BufferedRenderer(map_data, self.screen.get_size())
         map_layer.zoom = 1
@@ -169,10 +287,13 @@ class MapManager:
         # Ajouter des pièces/coins en tant que sprites.
         coins = pygame.sprite.Group()
 
+        # placement des walls et des coins
         for obj in tmx_data.objects:
             if obj.type == "collision":
                 walls.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-            elif obj.type == "coin_place":
+            # On implémente une fraction des pièces.
+            elif obj.type == "coin_place" and random() > PERCENTAGE_OF_SELECTED_COINS:
+
                 coins.add(Coin((obj.x - 24, obj.y - 24), self.screen))  # Valeur mal ajustée
 
         # Ajouter en wall toute la zone d'eau, sauf s'il y a un path par-dessus
@@ -191,24 +312,32 @@ class MapManager:
                 for group in groups_in_list(line, code='X', blank=' '):
                     walls.append(pygame.Rect(group[0] * 16, y * 16, (group[1] - group[0] + 1) * 16, 16))
 
+
+
         # Dessiner le groupe de calques. Si default_layer = 0 : bonhomme sur herbe, sous chemin
         group = pyscroll.PyscrollGroup(map_layer=map_layer, default_layer=5)  # Pourquoi 5 :
         group.add(self.player)
         # group.add(npcs)
         group.add(coins)  ## ??? mais coins est un groupe de Coin ???
+        # à group, qui contient déjà un groupe de pièce, on ajoute les NPC
         for npc in npcs:
             group.add(npc)
 
         # Fabriquer une carte simplifiée de 0 et de 1 pour les walls
+        # Cette carte est fausse pour "house".
         simple_map = build_simple_map_from_tmx(tmx_data, walls, reduction_factor=2)
+        if SHOW_SIMPLIFIED_MAP:
+            print(f"représentation  simplifiée de la carte pour {map_name}")
+            show_simple_page(simple_map)
 
         # Créer un objet Map
-        self.maps[map_name] = Map(map_name, walls, group, simple_map, tmx_data, portals, npcs)
+        self.maps[map_name] = Map(map_name, tmx_data, simple_map, walls, group, portals, npcs)
 
     def teleport_npcs(self):
         for map_name in self.maps:
-            map = self.maps[map_name]
-            for npc in map.npcs:
+            print(f"Je traite le monde {map_name}")
+            for npc in self.maps[map_name].npcs:
+                print(f"Je téléporte {npc.name}")
                 npc.calculate_then_teleport(self)
 
 
@@ -219,15 +348,16 @@ class MapManager:
         self.player.save_location()
 
     def define_npcs_debuggers(self):
-        for npc in self.maps['world'].npcs:
+        verbose = False
+        for npc in self.maps['garden'].npcs:
             for ar in npc.areas:
                 if verbose:
                     print(f"Je traite {ar} pour {npc} de {npc.areas}")
                 npc.add_indic('green', ar, 3)
 
     def check_collision(self):
-        # portals
-        for portal in self.get_map().portals:
+        # with portals
+        for portal in self.get_current_map().portals:
             if portal.from_world == self.current_map:
                 point = self.get_object(portal.origin_point)
                 rect = pygame.Rect(point.x, point.y, point.width, point.height)
@@ -238,39 +368,66 @@ class MapManager:
                     self.teleport_player(copy_portal.teleport_point)
                     self.master_game.point_counter.points += 100
 
-        # collisions, coins
+        # with walls and coins
         for my_sprite in self.get_group().sprites():
             # fix BUG_SAUT : Ne reculer que si le sprite est un Player, pas un NPC
             # if isinstance(my_sprite, Player):
             if my_sprite.name == "player":
                 if my_sprite.feet.collidelist(self.get_walls()) > -1:
                     my_sprite.move_back()
+
             if isinstance(my_sprite, Coin):
-                if self.player.feet.colliderect(my_sprite):
-                    if verbose:
-                        print(f"Miam ! {my_sprite.value} points !!")
-                    if my_sprite.never_eaten:
-                        self.master_game.point_counter.points += my_sprite.value
-                        my_sprite.never_eaten = False
-                    my_sprite.effect_during_death()
+                coin = my_sprite
+                if self.player.feet.colliderect(coin):
+                    if coin.status == 0:
+                        coin.status = 1
+                        coin.the_beginning_of_the_end_time = pygame.time.get_ticks()
+                        # comments
+                        if coin.value >= 0:
+                            if verbose:
+                                print(f"Miam ! {coin.value} points !!")
+                        else:
+                            if verbose:
+                                print("Mince ! une amende")
+                        # points
+                        self.master_game.point_counter.points += coin.value
 
-                elif my_sprite.biginning_of_the_end_time:
-                    my_sprite.display_its_last_secondes()
+                        # Bonus si toutes les pièces de la carte ont été ramassées
+                        if len(self.get_untouched_coins()) == 0:
+                            if verbose:
+                                print("Bonus de 100 points")
+                            self.master_game.point_counter.points += 100
+                else:
+                    coin.display_image()
+
+                if coin.the_beginning_of_the_end_time:
+                    if pygame.time.get_ticks() - coin.the_beginning_of_the_end_time > COIN_MAX_TIME:
+                        coin.kill()
+                        print(f"Coin {coin.name} killed" )
 
 
-                    # my_sprite.kill()
-
-    def get_map(self):
+    def get_current_map(self):
         return self.maps[self.current_map]
 
     def get_group(self):
-        return self.get_map().group
+        return self.get_current_map().group
+
+    def get_all_coins(self):
+        """return all coins of current map"""
+        sprite_list_of_current_map = self.get_group()._spritelist
+        return [sprite for sprite in sprite_list_of_current_map if sprite.name == 'coin']
+
+    def get_untouched_coins(self):
+        """return the list of untouched coins of current map"""
+        sprite_list_of_current_map = self.get_group()._spritelist
+        return [sprite for sprite in sprite_list_of_current_map if
+                sprite.name == 'coin' and sprite.status == 0]
 
     def get_walls(self):
-        return self.get_map().walls
+        return self.get_current_map().walls
 
     def get_object(self, name):
-        return self.get_map().tmx_data.get_object_by_name(name)
+        return self.get_current_map().tmx_data.get_object_by_name(name)
 
     # trouver automatiquement le nombre d'objets correspondant à une regex
     # par exemple "paul_path\d"
@@ -291,14 +448,20 @@ class MapManager:
         self.get_group().update()
         self.check_collision()
 
+        # Ici, on pourrait gérer les effets sur les coins en train de mourir.
+
         # Bouger les NPC
-        for npc in self.get_map().npcs:
+        for npc in self.get_current_map().npcs:
             npc.move()
         pygame.display.flip()
 
-    def draw(self):
+    def draw_current_map(self):
+        # Dessine la carte courante
+        # TODO : bazar monstre. draw pointe sur un fichier de test !!!:
+
         self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
+        # La ligne suivante est à l'origine du décalage de l'affichage du texte.
+        # self.get_group().center(self.player.rect.center)  # ??? ref à player ?? adéquat pour NPC
         # On ajoute des indicateurs pour debugger certaines cartes
         if self.current_map == 'world':
             self_maps_world_ = self.maps['world']
@@ -310,9 +473,18 @@ class MapManager:
                 for one_indic in npc.indic:
                     one_indic.render(self.screen)
 
+    def draw_map(self, map_name):
+        """  Utilitaire pour débugguer : afficher une carte spécifique
 
-def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
-    """Deduce a 2 dimensional array from a tmx map"""
+        :param map_name:
+        :return: None
+        """
+        self.current_map= map_name
+        self.draw_current_map()
+
+
+def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor) -> list:
+    """Deduce a 2 dimensions array from a tmx map"""
     bin_map = []
     size = tmx_data.tilewidth
     map_w = tmx_data.width * size
@@ -322,13 +494,34 @@ def build_simple_map_from_tmx(tmx_data, walls_block_list, reduction_factor):
     for i, y in enumerate(range(0 + dec, map_h + dec, steps)):
         line_map = []
         for j, x in enumerate(range(0, map_w, steps)):
+            # pygame.Rect est un très petit carré (presque un point) de position x, y
+            # collide list attend des surfaces (Rect) et non pas un point.
             PP = pygame.Rect(x, y, 1, 1)
             if PP.collidelist(walls_block_list) != -1:  # See documentation of colidelist()
                 line_map.append(1)
             else:
                 line_map.append(0)
         bin_map.append(line_map)
-    if verbose:
-        pprint(bin_map)
-        print("La carte est ci-dessus : ! ")
+
     return bin_map
+
+
+def show_simple_page(map):
+    """
+    print a semi-graphicaldisplay of the map
+
+    :param map: a simple map (list of list of (0 or 1)
+    :return:
+    """
+    g_map = []
+    translation = '  '
+    for i, row in enumerate(map):
+        line = ''
+        for j, value in enumerate(row):
+            if value == 1:
+                translation = 'ZZ'
+            elif value != 0:
+                print (f"Erreur sur la valeur en rangée ={i}, colonne = {j} : {value}" )
+            line += translation
+        g_map.append(line)
+    pprint(g_map)

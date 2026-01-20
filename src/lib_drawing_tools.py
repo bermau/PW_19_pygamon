@@ -1,8 +1,8 @@
-"""Tools to draw over the main game"""
+"""Tools to draw_current_map over the main game"""
 
 import pygame
 
-display = False
+display = False   # peut être modifié dans game.py pour un usage plus général
 
 
 class DebugRect:

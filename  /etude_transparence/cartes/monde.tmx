@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="5" height="6" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="5">
+ <tileset firstgid="1" source="../tuiles/tuiles_donjons.tsx"/>
+ <tileset firstgid="257" source="../../map/tileset_dungeon.tsx"/>
+ <tileset firstgid="513" source="../tuiles/tuiles_mondes.tsx"/>
+ <layer id="1" name="Calque de Tuiles 1" width="5" height="6">
+  <data encoding="csv">
+593,594,925,845,885,
+633,634,925,845,925,
+885,925,926,885,925,
+925,926,927,925,926,
+925,926,927,887,926,
+925,926,927,927,847
+</data>
+ </layer>
+ <layer id="3" name="Calque de Tuiles 2" width="5" height="6">
+  <data encoding="csv">
+0,0,0,0,0,
+0,0,0,0,0,
+0,0,0,0,0,
+0,0,593,594,0,
+0,0,633,634,0,
+0,0,0,0,0
+</data>
+ </layer>
+</map>

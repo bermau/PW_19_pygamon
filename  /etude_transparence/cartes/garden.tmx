@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="5" height="6" tilewidth="16" tileheight="16" infinite="0" nextlayerid="12" nextobjectid="89">
+ <tileset firstgid="1" source="../../map/tileset_nature.tsx"/>
+ <tileset firstgid="721" source="../../map/tileset_house.tsx"/>
+ <tileset firstgid="1496" source="../tuiles/tuiles_mondes.tsx"/>
+ <layer id="1" name="background" width="5" height="6">
+  <data encoding="csv">
+1858,1858,1858,1858,1858,
+1858,1858,1858,1858,1858,
+1858,1858,1858,1858,1858,
+1858,1858,1858,1858,1858,
+1858,1858,1858,1858,1858,
+1858,1858,1858,1858,1858
+</data>
+ </layer>
+ <layer id="6" name="decoration" width="5" height="6">
+  <data encoding="csv">
+0,0,1496,1497,0,
+0,0,1536,1537,0,
+1,2,1576,1577,0,
+41,42,1616,1617,0,
+81,82,1818,1819,0,
+121,122,0,1,2
+</data>
+ </layer>
+</map>

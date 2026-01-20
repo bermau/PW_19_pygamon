@@ -2,7 +2,7 @@ import random
 from random import randint
 import pygame
 
-from essais.essai_dijkstra_damier import title
+# from essais.essai_dijkstra_damier import title
 from lib_dijkstra import DijkstraManager, Point, pyrect_to_point, point_to_pyrect
 from src.lib_drawing_tools import DebugRect
 
@@ -10,8 +10,16 @@ verbose = False
 
 
 class Entity(pygame.sprite.Sprite):
+    """Entity class est the parent of Player and NPC"""
 
     def __init__(self, name, x, y, screen=None):
+        """
+
+        :param name: str
+        :param x: int pixels
+        :param y: int pixels
+        :param screen:
+        """
         super().__init__()
         self.name = name
         self.sprite_sheet = pygame.image.load(f'../sprites/{name}.png')
@@ -21,6 +29,7 @@ class Entity(pygame.sprite.Sprite):
         self.position = [x, y]
         self.screen = screen if screen else None
 
+        self.animation = 'down'   #
         # Mon sprite mesure 32 * 32
         self.images = {
             'down': self.get_image(0, 0),
@@ -36,9 +45,11 @@ class Entity(pygame.sprite.Sprite):
         self.old_position = self.position.copy()
 
     def change_animation(self, attitude):
-        # ('up', 'down', 'left', 'right')
-        self.image = self.images[attitude]
-        self.image.set_colorkey((0, 0, 0))
+        # change image if necessary ('up', 'down', 'left', 'right')
+        if attitude != self.animation:
+            self.image = self.images[attitude]
+            self.image.set_colorkey((0, 0, 0))
+            self.animation = attitude
 
     def move_right(self):
         self.position[0] += self.speed
@@ -53,12 +64,12 @@ class Entity(pygame.sprite.Sprite):
         self.position[1] += self.speed
 
     def update(self):
-        self.rect.topleft = self.position
+        self.rect.topleft = tuple(self.position)
         self.feet.midbottom = self.rect.midbottom
 
     def move_back(self):
         self.position = self.old_position
-        self.rect.topleft = self.position
+        self.rect.topleft = tuple(self.position)
         self.feet.midbottom = self.rect.midbottom
 
     def get_image(self, x, y):
@@ -82,7 +93,8 @@ class NPC(Entity):
         self.map_name = map_name
         self.verbose = verbose
         self.debug_count = 0
-        self.move_direction = None
+        self.move_direction = None  # Direction générale du mouvement ('SE', 'NE', 'SW', 'NW')
+
         self.indic = []  # Liste d'indicateurs de débogage
 
         # Les zones issues de la carte tmx. Elles sont désignées par un nom de type robin_path1.
@@ -99,16 +111,18 @@ class NPC(Entity):
 
         # les points de la carte simplifiée pour résoudre la promenade/ walk.        
         self.djik = None  # Objet pour résoudre le chemin selon Dijkstra.
-        # Les points ci dessous sont utilisé pour guider le mouvement dans la promenade.
-        self.prev_point = None  # Le Point d'où lon vient. Sera initialisé par init_dijkstra
+        # Les points ci-dessous sont utilisés pour guider le mouvement dans la promenade.
+        self.prev_point = None  # Le Point d'où lon vient. Sera initialisé par init_dijkstra()
         self.next_point = None  # Le Point où l'on va
-        self.next_point_rect: pygame.Rect = None  # Son équivalent en pygame.rect
+        self.next_point_rect: None  # Son équivalent en pygame.rect  pygame.Rect
         self.next_dir = None
         # Il faut penser à lancer les méthodes de début après création de NPC:
         # par self.calculate_then_teleport()
         # par exemple define_first_target()
 
+
     def calculate_next_area_idx(self):
+        self.modify_speed()
         while True:
             rnd = randint(0, self.areas_nb - 1)
             if rnd != self.current_area_idx:
@@ -116,6 +130,7 @@ class NPC(Entity):
                 break
 
     def modify_speed(self):
+        """Modifie la vitesse de façon pseudo-aléatoire"""
         self.speed = self.speed + randint(-1, 1)
         if self.speed == 0:
             self.speed = 1
@@ -123,7 +138,7 @@ class NPC(Entity):
             self.speed = 3
 
     def calculate_move_direction(self):
-        """Algorithme très primaire. Il a besoin de déterminer la direction générale à prendre."""
+        """Algorithme très primaire. Déterminer la direction générale à prendre."""
         target_point = self.areas[self.next_area_idx].center
         feet_point = self.feet.center
 
@@ -143,7 +158,8 @@ class NPC(Entity):
         if verbose:
             print(f"Nouvelle cible : {self.next_area_idx}, direction : {self.move_direction}")
 
-    def calculate_dijkstra(self, verbose=False):
+
+    def calculate_dijkstra(self, verbose=0):
         """Lit la carte simplifiée.
         L'algorithme utilise une version réduite de la carte. La réduction est de 1 ou 2 fois la taille des
         tuiles.
@@ -162,10 +178,8 @@ class NPC(Entity):
 
         if verbose:
             print(f"Il faut aller du point {start_point} au point {end_point}")
-        self.dijk.dijkstra(start_point, verbose=0)
-
-        self.dijk.format_path(start_point, end_point, verbose=True)
-
+        self.dijk.dijkstra(start_point, verbose=verbose)  # OK
+        self.dijk.format_path(start_point, end_point, verbose=verbose)
         self.prev_point = start_point
         self.dijk.give_next_instruction()  # IMPORTANT : on élimine la dernière valeur
         self.next_point, self.next_dir = self.dijk.give_next_instruction()
@@ -173,6 +187,7 @@ class NPC(Entity):
         if verbose:
             print("Fin de calcul du Dijkstra")
             print(f"{self.next_dir} point_actuel: {self.rect} next_point: {self.next_point} ; next_point_rect : {self.next_point_rect}")
+
 
     def define_first_target(self):
         self.current_area_idx = 0  # index de area
@@ -184,10 +199,9 @@ class NPC(Entity):
         # self.move_direction = 'SE'
 
     def calculate_then_teleport(self, map_manager):
-        """Le NPC évolue dans un environnement (une carte, qui est gérée par le map_manager). Le map_panager est une
+        """Le NPC évolue dans un environnement (une carte qui est gérée par le map_manager). Le map_panager est une
         classe dont l'instance unique gère toutes les cartes."""
         regex_path = self.name + r"_path\d"
-        # self.areas = map_manager.get_object_by_regex(a_map, regex_path)
         self.targets = [sprite for sprite in map_manager.get_group().sprites() if sprite.name == 'coin']
         self.areas = [target.rect for target in self.targets]
 
@@ -213,15 +227,19 @@ class NPC(Entity):
 
     def move_dij(self):
         """Mouvement automatique. Algorithme type Djikstra à ma façon.
-        Cette fonction est en cours d'écriture"""
+        Mon implémentation n'est pas optimale !"""
         sens = self.next_dir
         if sens == 'R':
+            self.change_animation('right')
             self.move_right()
         elif sens == 'L':
+            self.change_animation('left')
             self.move_left()
         elif sens == 'B':
+            self.change_animation('down')
             self.move_down()
         elif sens == 'T':
+            self.change_animation('up')
             self.move_up()
         elif sens is None:
             pass

@@ -79,20 +79,21 @@ De façon similaire, on peut afficher un rectangle pour un monde particulier dan
         self.maps['world'].indic = DebugRect('red', pygame.Rect(400, 200, 100, 50), 6)
 ```
 
-Puis on modifie la fonction `draw() `ainsi : 
+Puis on modifie la fonction `draw_current_map() `ainsi :
 
 ```python
-    def draw(self):
-        self.get_group().draw(self.screen)
-        self.get_group().center(self.player.rect.center)
-        # On ajoute un indicateur pour debugger certaines cartes
-        if self.current_map == 'world':
-            self.maps['world'].indic.render(self.screen)
+    def draw_current_map(self):
+    self.get_group().draw_current_map(self.screen)
+    self.get_group().center(self.player.rect.center)
+    # On ajoute un indicateur pour debugger certaines cartes
+    if self.current_map == 'world':
+        self.maps['world'].indic.render(self.screen)
 ```
 Résultats : 
 
 | ![world_and_indicators.png](images%2Fworld_and_indicators.png)                                         | ![house_and_indicator.png](images%2Fhouse_and_indicator.png)    |
 |--------------------------------------------------------------------------------------------------------|-----|
+
 
 Un cadre rose (sur toutes les cartes) et un cadre rouge sur la carte 'monde' uniquement. 
 
@@ -103,10 +104,10 @@ Le NPC est sur l'eau. Or l'eau est perçue comme interdite selon la carte simpli
 
 Pour analyser l'erreur, j'initialise le générateur de nombre aléatoire avec l'instruction `seed()` dans `maps.py`. Je me suis rendu compte que l'erreur portait sur les premiers instants du jeu. 
 
-L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il avait parvenu au point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
+L'erreur venait du fait qu'au cours de la promenade, le NPC considérait qu'il était parvenu au point suivant trop tôt (dès le premier mouvement en quittant le premier point). J'ai résolu le problème en remplaçant la fonction de type `Rect.collide` par une fonction de type `Rect.contain`() dans le test de collision du NPC.
 
 ## 23-03_afficher_la_valeur_des_pieces
-Je veux que, quand on ramasse une pièce, elle disparaisse en affichant sa valeur à sa place pendant quelques instants. J'ai donc modifié la classe `Coin()`. J'ai l'impression qu'après chaque blit ou draw il faut ajouter un nouveau `pygame.display.flip()`, mais je ne sais pas où le placer exactement. J'ai réussi à faire afficher la valeur de la pièce. Il y a un problème de stabilité de son affichage (scintillement, qui est dépendant du nombre d'images par seconde). MERGED sur Devel.
+Je veux que, quand on ramasse une pièce, elle disparaisse en affichant sa valeur à sa place pendant quelques instants. J'ai donc modifié la classe `Coin()`. J'ai l'impression qu'après chaque blit ou draw_current_map il faut ajouter un nouveau `pygame.display.flip()`, mais je ne sais pas où le placer exactement. J'ai réussi à faire afficher la valeur de la pièce. Il y a un problème de stabilité de son affichage (scintillement, qui est dépendant du nombre d'images par seconde). MERGED sur Devel.
 
 ## 23_03_supprimer_scintillement_de_la_valeur_des_pieces
 Résoudre le bug d'affichage de la valeur des pièces. Dépend de la vitesse du jeu nombre d'images secondes. 
@@ -118,6 +119,13 @@ méthode : self.areas deviennent une liste non plus des Rect des objets Sprite d
 
 Mon modèle est sans doute mal posé. Mes NPC savent se déplacer dans un monde de Rect... mais les pièces (Coins) sont des objets différents. Ce sont des dérivés de Sprites. Je crée une liste parente de Coins. Il faudrait que je comprenne la notion de groupe.
 Pour l'instant les 2 NPC se déplacent entre les pièces, sans les manger.
+
+## fin oct 2025 : création de devel2
+J'élimine la branche devel, qui est trop confuse. Je pousse master et ce que j'ai récupéré de devel. L'ensemble est dans la branche master, sous le tag v0.03. Je le pousse sur github. 
+
+Je crée une branche dérivée de master nommée devel2 (je ne sais pas comment éliminer la branche devel).
+## 25_10_ameliorer_affichage_des_pieces
+créé depuis devel_2
 
 # Note sur l'ordre des importations : 
 main.py  : 
